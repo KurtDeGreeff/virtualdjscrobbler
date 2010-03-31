@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.biohaz.vdjscrobbler</groupId>
+	<groupId>se.tingne.vdjscrobbler</groupId>
 	<artifactId>VirtualDJScrobbler</artifactId>
 	<packaging>jar</packaging>
 	<version>beta</version>
@@ -57,7 +57,7 @@
 					</descriptorRefs>
 					<archive>
 						<manifest>
-							<mainClass>com.biohaz.vdjscrobbler.VirtualDJScrobbler</mainClass>
+							<mainClass>se.tingne.vdjscrobbler.VirtualDJScrobbler</mainClass>
 							<addClasspath>true</addClasspath>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 						</manifest>
