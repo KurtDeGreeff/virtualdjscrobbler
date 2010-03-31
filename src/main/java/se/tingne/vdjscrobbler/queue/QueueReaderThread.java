@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * VirtualDJScrobbler. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.biohaz.vdjscrobbler.queue;
+package se.tingne.vdjscrobbler.queue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +24,11 @@ import java.util.Queue;
 
 import org.apache.log4j.Logger;
 
-import com.biohaz.vdjscrobbler.VirtualDJScrobbler;
-import com.biohaz.vdjscrobbler.data.LastFMTrack;
-import com.biohaz.vdjscrobbler.data.LastFMUser;
-import com.biohaz.vdjscrobbler.workerthreads.SubmissionThread;
+import se.tingne.vdjscrobbler.VirtualDJScrobbler;
+import se.tingne.vdjscrobbler.data.LastFMTrack;
+import se.tingne.vdjscrobbler.data.LastFMUser;
+import se.tingne.vdjscrobbler.workerthreads.SubmissionThread;
+
 
 /** @author Magnus Tingne */
 public class QueueReaderThread extends Thread {

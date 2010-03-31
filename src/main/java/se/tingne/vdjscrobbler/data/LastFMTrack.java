@@ -16,12 +16,13 @@
  * You should have received a copy of the GNU General Public License along with
  * VirtualDJScrobbler. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.biohaz.vdjscrobbler.data;
+package se.tingne.vdjscrobbler.data;
 
 import java.io.Serializable;
 
-import com.biohaz.vdjscrobbler.enums.Rating;
-import com.biohaz.vdjscrobbler.enums.Source;
+import se.tingne.vdjscrobbler.enums.Rating;
+import se.tingne.vdjscrobbler.enums.Source;
+
 
 /** @author Magnus Tingne */
 public class LastFMTrack implements Serializable {

@@ -16,12 +16,13 @@
  * You should have received a copy of the GNU General Public License along with
  * VirtualDJScrobbler. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.biohaz.vdjscrobbler.workerthreads;
+package se.tingne.vdjscrobbler.workerthreads;
 
 import org.apache.log4j.Logger;
 
-import com.biohaz.vdjscrobbler.VirtualDJScrobbler;
-import com.biohaz.vdjscrobbler.data.LastFMUser;
+import se.tingne.vdjscrobbler.VirtualDJScrobbler;
+import se.tingne.vdjscrobbler.data.LastFMUser;
+
 
 /** @author Magnus Tingne */
 public class ValidateUserThread extends Thread {

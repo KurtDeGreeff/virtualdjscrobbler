@@ -16,19 +16,20 @@
  * You should have received a copy of the GNU General Public License along with
  * VirtualDJScrobbler. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.biohaz.vdjscrobbler.workerthreads;
+package se.tingne.vdjscrobbler.workerthreads;
 
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.biohaz.vdjscrobbler.Scrobbler;
-import com.biohaz.vdjscrobbler.VirtualDJScrobbler;
-import com.biohaz.vdjscrobbler.data.LastFMTrack;
-import com.biohaz.vdjscrobbler.data.LastFMUser;
-import com.biohaz.vdjscrobbler.enums.LastFMResponse;
-import com.biohaz.vdjscrobbler.exceptions.LastFMHardFailureException;
-import com.biohaz.vdjscrobbler.exceptions.LastFMSoftFailureException;
+import se.tingne.vdjscrobbler.Scrobbler;
+import se.tingne.vdjscrobbler.VirtualDJScrobbler;
+import se.tingne.vdjscrobbler.data.LastFMTrack;
+import se.tingne.vdjscrobbler.data.LastFMUser;
+import se.tingne.vdjscrobbler.enums.LastFMResponse;
+import se.tingne.vdjscrobbler.exceptions.LastFMHardFailureException;
+import se.tingne.vdjscrobbler.exceptions.LastFMSoftFailureException;
+
 
 /** @author Magnus Tingne */
 public class SubmissionThread extends Thread {

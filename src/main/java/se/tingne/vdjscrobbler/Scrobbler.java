@@ -16,17 +16,17 @@
  * You should have received a copy of the GNU General Public License along with
  * VirtualDJScrobbler. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.biohaz.vdjscrobbler;
+package se.tingne.vdjscrobbler;
 
-import static com.biohaz.vdjscrobbler.enums.LastFMResponse.GREAT_SUCCESS;
-import static com.biohaz.vdjscrobbler.enums.LastFMResponse.HARD_FAILURE_BANNED_CLIENT;
-import static com.biohaz.vdjscrobbler.enums.LastFMResponse.HARD_FAILURE_ERROR_RESPONSE_CODE;
-import static com.biohaz.vdjscrobbler.enums.LastFMResponse.HARD_FAILURE_FAILED;
-import static com.biohaz.vdjscrobbler.enums.LastFMResponse.HARD_FAILURE_UNKNOWN;
-import static com.biohaz.vdjscrobbler.enums.LastFMResponse.SOFT_FAILURE_BAD_AUTH;
-import static com.biohaz.vdjscrobbler.enums.LastFMResponse.SOFT_FAILURE_BAD_SESSION;
-import static com.biohaz.vdjscrobbler.enums.LastFMResponse.SOFT_FAILURE_BAD_TIME;
-import static com.biohaz.vdjscrobbler.util.MD5Util.md5;
+import static se.tingne.vdjscrobbler.enums.LastFMResponse.GREAT_SUCCESS;
+import static se.tingne.vdjscrobbler.enums.LastFMResponse.HARD_FAILURE_BANNED_CLIENT;
+import static se.tingne.vdjscrobbler.enums.LastFMResponse.HARD_FAILURE_ERROR_RESPONSE_CODE;
+import static se.tingne.vdjscrobbler.enums.LastFMResponse.HARD_FAILURE_FAILED;
+import static se.tingne.vdjscrobbler.enums.LastFMResponse.HARD_FAILURE_UNKNOWN;
+import static se.tingne.vdjscrobbler.enums.LastFMResponse.SOFT_FAILURE_BAD_AUTH;
+import static se.tingne.vdjscrobbler.enums.LastFMResponse.SOFT_FAILURE_BAD_SESSION;
+import static se.tingne.vdjscrobbler.enums.LastFMResponse.SOFT_FAILURE_BAD_TIME;
+import static se.tingne.vdjscrobbler.util.MD5Util.md5;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -46,12 +46,13 @@ import java.util.TimeZone;
 
 import org.apache.log4j.Logger;
 
-import com.biohaz.vdjscrobbler.data.LastFMTrack;
-import com.biohaz.vdjscrobbler.data.LastFMUser;
-import com.biohaz.vdjscrobbler.enums.Rating;
-import com.biohaz.vdjscrobbler.enums.Source;
-import com.biohaz.vdjscrobbler.exceptions.LastFMHardFailureException;
-import com.biohaz.vdjscrobbler.exceptions.LastFMSoftFailureException;
+import se.tingne.vdjscrobbler.data.LastFMTrack;
+import se.tingne.vdjscrobbler.data.LastFMUser;
+import se.tingne.vdjscrobbler.enums.Rating;
+import se.tingne.vdjscrobbler.enums.Source;
+import se.tingne.vdjscrobbler.exceptions.LastFMHardFailureException;
+import se.tingne.vdjscrobbler.exceptions.LastFMSoftFailureException;
+
 
 /** @author Magnus Tingne */
 public class Scrobbler {
