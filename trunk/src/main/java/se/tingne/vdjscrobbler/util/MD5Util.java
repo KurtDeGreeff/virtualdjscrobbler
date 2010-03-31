@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * VirtualDJScrobbler. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.biohaz.vdjscrobbler.util;
+package se.tingne.vdjscrobbler.util;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;

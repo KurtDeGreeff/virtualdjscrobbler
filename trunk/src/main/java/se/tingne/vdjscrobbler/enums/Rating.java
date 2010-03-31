@@ -16,11 +16,21 @@
  * You should have received a copy of the GNU General Public License along with
  * VirtualDJScrobbler. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.biohaz.vdjscrobbler.enums;
+package se.tingne.vdjscrobbler.enums;
 
 /**
  * @author Magnus Tingne
  */
-public enum Source {
-	P, R, E, L, U;
+public enum Rating {
+	L("L"), B("B"), S("S"), NA("");
+
+	private final String rating;
+
+	private Rating(String rating) {
+		this.rating = rating;
+	}
+
+	public String getStringRepresentation() {
+		return rating;
+	}
 }

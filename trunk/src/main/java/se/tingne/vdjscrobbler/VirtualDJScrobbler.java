@@ -16,9 +16,9 @@
  * You should have received a copy of the GNU General Public License along with
  * VirtualDJScrobbler. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.biohaz.vdjscrobbler;
+package se.tingne.vdjscrobbler;
 
-import static com.biohaz.vdjscrobbler.util.MD5Util.md5;
+import static se.tingne.vdjscrobbler.util.MD5Util.md5;
 
 import java.awt.AWTException;
 import java.awt.CheckboxMenuItem;
@@ -95,12 +95,13 @@ import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
 
-import com.biohaz.vdjscrobbler.data.LastFMTrack;
-import com.biohaz.vdjscrobbler.data.LastFMUser;
-import com.biohaz.vdjscrobbler.enums.Source;
-import com.biohaz.vdjscrobbler.queue.QueueReaderThread;
-import com.biohaz.vdjscrobbler.workerthreads.NowPlayingThread;
-import com.biohaz.vdjscrobbler.workerthreads.ValidateUserThread;
+import se.tingne.vdjscrobbler.data.LastFMTrack;
+import se.tingne.vdjscrobbler.data.LastFMUser;
+import se.tingne.vdjscrobbler.enums.Source;
+import se.tingne.vdjscrobbler.queue.QueueReaderThread;
+import se.tingne.vdjscrobbler.workerthreads.NowPlayingThread;
+import se.tingne.vdjscrobbler.workerthreads.ValidateUserThread;
+
 
 /**
  * @author Magnus Tingne

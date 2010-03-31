@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * VirtualDJScrobbler. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.biohaz.vdjscrobbler.data;
+package se.tingne.vdjscrobbler.data;
 
 /** @author Magnus Tingne */
 public class LastFMUser {

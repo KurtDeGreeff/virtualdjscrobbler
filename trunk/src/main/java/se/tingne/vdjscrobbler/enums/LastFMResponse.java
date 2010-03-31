@@ -16,32 +16,24 @@
  * You should have received a copy of the GNU General Public License along with
  * VirtualDJScrobbler. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.biohaz.vdjscrobbler.exceptions;
+package se.tingne.vdjscrobbler.enums;
 
-import com.biohaz.vdjscrobbler.enums.LastFMResponse;
+/**
+ * @author Magnus Tingne
+ */
+public enum LastFMResponse {
+	GREAT_SUCCESS("OK"), HARD_FAILURE_ERROR_RESPONSE_CODE("RESPONSECODE"), HARD_FAILURE_BANNED_CLIENT(
+			"BANNED"), HARD_FAILURE_FAILED("FAILED"), SOFT_FAILURE_BAD_AUTH(
+			"BADAUTH"), SOFT_FAILURE_BAD_TIME("BADTIME"), SOFT_FAILURE_BAD_SESSION(
+			"BADSESSION"), HARD_FAILURE_UNKNOWN("UNKNOWN");
 
-/** @author Magnus Tingne */
-public class LastFMHardFailureException extends Exception {
+	private final String text;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -3700820006232733147L;
-
-	private final LastFMResponse failureType;
-
-	public LastFMHardFailureException(String message, LastFMResponse failureType) {
-		super(message);
-		this.failureType = failureType;
+	private LastFMResponse(String text) {
+		this.text = text;
 	}
 
-	public LastFMHardFailureException(String message,
-			LastFMResponse failureType, Throwable t) {
-		super(message, t);
-		this.failureType = failureType;
-	}
-
-	public LastFMResponse getFailureType() {
-		return failureType;
+	public String getText() {
+		return text;
 	}
 }

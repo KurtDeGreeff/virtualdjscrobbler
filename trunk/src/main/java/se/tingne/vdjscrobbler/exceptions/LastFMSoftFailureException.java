@@ -16,21 +16,32 @@
  * You should have received a copy of the GNU General Public License along with
  * VirtualDJScrobbler. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.biohaz.vdjscrobbler.enums;
+package se.tingne.vdjscrobbler.exceptions;
 
-/**
- * @author Magnus Tingne
- */
-public enum Rating {
-	L("L"), B("B"), S("S"), NA("");
+import se.tingne.vdjscrobbler.enums.LastFMResponse;
 
-	private final String rating;
+/** @author Magnus Tingne */
+public class LastFMSoftFailureException extends Exception {
 
-	private Rating(String rating) {
-		this.rating = rating;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3700820006232733147L;
+
+	private final LastFMResponse failureType;
+
+	public LastFMSoftFailureException(String message, LastFMResponse failureType) {
+		super(message);
+		this.failureType = failureType;
 	}
 
-	public String getStringRepresentation() {
-		return rating;
+	public LastFMSoftFailureException(String message,
+			LastFMResponse failureType, Throwable t) {
+		super(message, t);
+		this.failureType = failureType;
+	}
+
+	public LastFMResponse getFailureType() {
+		return failureType;
 	}
 }
