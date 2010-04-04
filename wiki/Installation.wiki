@@ -1,0 +1,6 @@
+#summary Install instructions.
+#labels Phase-Deploy
+
+= Install instructions =
+
+Unzip VirtualDJScrobbler.zip into a directory of your choice.
