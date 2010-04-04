@@ -1046,11 +1046,14 @@ public class VirtualDJScrobbler extends Thread {
 		html.append("<b>Version:</b>&nbsp;" + VERSION);
 		html.append("<br/><b>Created by:</b>&nbsp;Magnus Tingne 2009");
 		html.append("<br/><b>Copyright:</b>&nbsp;Magnus Tingne 2009");
-		URL gplUrl = ClassLoader.getSystemResource("licence.txt");
 		html
-				.append("<br/><b>Licence:</b>&nbsp;This software is released under the");
+				.append("<br/><b>Licence:</b>&nbsp;The code of this software is released under the");
 		html
 				.append("<br/><a href=http://www.gnu.org/licenses/gpl.txt>GNU General Public License v3</a>");
+		html
+				.append("<br/><b>Content licence:</b>&nbsp;The content in this software is released under");
+		html
+				.append("<br/><a href=http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>Creative Commons 3.0 BY-SA</a>");
 		URL poweredByUrl = ClassLoader.getSystemResource("poweredby.png");
 		html
 				.append("<br/><b>Support:</b>&nbsp;<a href=mailto:vdjscrobbler@gmail.com?subject=support>vdjscrobbler@gmail.com</a>");
