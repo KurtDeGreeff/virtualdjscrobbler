@@ -4,7 +4,7 @@
 	<groupId>se.tingne.vdjscrobbler</groupId>
 	<artifactId>VirtualDJScrobbler</artifactId>
 	<packaging>jar</packaging>
-	<version>beta</version>
+	<version>0.1</version>
 	<name>VirtualDJScrobbler</name>
 	<url>http://maven.apache.org</url>
 	<repositories>
