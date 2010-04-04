@@ -53,7 +53,6 @@ import se.tingne.vdjscrobbler.enums.Source;
 import se.tingne.vdjscrobbler.exceptions.LastFMHardFailureException;
 import se.tingne.vdjscrobbler.exceptions.LastFMSoftFailureException;
 
-
 /** @author Magnus Tingne */
 public class Scrobbler {
 	private static final Logger log = org.apache.log4j.Logger
@@ -86,8 +85,8 @@ public class Scrobbler {
 	private Scrobbler(LastFMUser user) {
 		this.user = user;
 		handshakeURL = "http://post.audioscrobbler.com/"; // TODO: Property?
-		clientID = "tst"; // dito //If you use this code the client id and
-		clientVersion = "1.0"; // dito // clientVersion and protocolVersion
+		clientID = "vds"; // dito //If you use this code the client id and
+		clientVersion = "0.1"; // dito // clientVersion and protocolVersion
 		protocolVersion = "1.2.1"; // dito //needs to be changed to yours
 	}
 

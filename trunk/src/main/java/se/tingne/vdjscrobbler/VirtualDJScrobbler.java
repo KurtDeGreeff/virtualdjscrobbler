@@ -102,13 +102,12 @@ import se.tingne.vdjscrobbler.queue.QueueReaderThread;
 import se.tingne.vdjscrobbler.workerthreads.NowPlayingThread;
 import se.tingne.vdjscrobbler.workerthreads.ValidateUserThread;
 
-
 /**
  * @author Magnus Tingne
  */
 public class VirtualDJScrobbler extends Thread {
 	private static final String NAME = "VirtualDJScrobbler";
-	private static final String VERSION = "Beta";
+	private static final String VERSION = "0.1";
 
 	private static final String USERS_PREFERENCE = "USERS";
 	private static final String TRACKLIST_FILE_PREFERENCE = "TRACKLIST";
