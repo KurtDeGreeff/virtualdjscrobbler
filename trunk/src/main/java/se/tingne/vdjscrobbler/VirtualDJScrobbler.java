@@ -107,7 +107,7 @@ import se.tingne.vdjscrobbler.workerthreads.ValidateUserThread;
  */
 public class VirtualDJScrobbler extends Thread {
 	private static final String NAME = "VirtualDJScrobbler";
-	private static final String VERSION = "0.1.1";
+	private static final String VERSION = "0.1.2";
 
 	private static final String USERS_PREFERENCE = "USERS";
 	private static final String TRACKLIST_FILE_PREFERENCE = "TRACKLIST";
@@ -353,7 +353,8 @@ public class VirtualDJScrobbler extends Thread {
 
 	private String checkOSAndPreAppendAppDir(String fileName) {
 		String os = System.getProperty("os.name");
-		if (os.toLowerCase().contains("win")) {
+		if (os.toLowerCase().contains("win")
+				&& !os.toLowerCase().contains("xp")) {
 			fileName = System.getProperty("user.home")
 					+ "\\AppData\\Roaming\\VirtualDJScrobbler\\" + fileName;
 		}
