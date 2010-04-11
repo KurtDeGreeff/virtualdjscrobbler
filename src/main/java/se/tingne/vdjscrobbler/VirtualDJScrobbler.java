@@ -107,7 +107,7 @@ import se.tingne.vdjscrobbler.workerthreads.ValidateUserThread;
  */
 public class VirtualDJScrobbler extends Thread {
 	private static final String NAME = "VirtualDJScrobbler";
-	private static final String VERSION = "0.1";
+	private static final String VERSION = "0.1.1";
 
 	private static final String USERS_PREFERENCE = "USERS";
 	private static final String TRACKLIST_FILE_PREFERENCE = "TRACKLIST";
@@ -337,15 +337,27 @@ public class VirtualDJScrobbler extends Thread {
 	}
 
 	private boolean obtainLock() throws IOException {
-		lockFile = new File(".lock");
+		String fileName = ".lock";
+		fileName = checkOSAndPreAppendAppDir(fileName);
+		lockFile = new File(fileName);
 		if (!lockFile.exists()) {
 			boolean createNewFile = lockFile.createNewFile();
 			if (!createNewFile) {
+				log.error("Could not create log-file.");
 				return false;
 			}
 		}
 		lock = new FileOutputStream(lockFile).getChannel().tryLock();
 		return lock != null;
+	}
+
+	private String checkOSAndPreAppendAppDir(String fileName) {
+		String os = System.getProperty("os.name");
+		if (os.toLowerCase().contains("win")) {
+			fileName = System.getProperty("user.home")
+					+ "\\AppData\\Roaming\\VirtualDJScrobbler\\" + fileName;
+		}
+		return fileName;
 	}
 
 	@Override
@@ -475,7 +487,9 @@ public class VirtualDJScrobbler extends Thread {
 	}
 
 	private void setErrorStream() {
-		File file = new File("./errorstream.log");
+		String fileName = ".errorstream.log";
+		fileName = checkOSAndPreAppendAppDir(fileName);
+		File file = new File(fileName);
 		try {
 			PrintStream printStream = new PrintStream(new FileOutputStream(
 					file, true));
@@ -535,7 +549,9 @@ public class VirtualDJScrobbler extends Thread {
 
 	@SuppressWarnings("unchecked")
 	private void loadQueue() {
-		File queueFile = new File("./trackQueue");
+		String fileName = ".trackQueue";
+		fileName = checkOSAndPreAppendAppDir(fileName);
+		File queueFile = new File(fileName);
 		try {
 			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(
 					queueFile));
@@ -811,8 +827,9 @@ public class VirtualDJScrobbler extends Thread {
 
 	private void storeQueue() {
 		try {
-			FileOutputStream fos = new FileOutputStream(
-					new File("./trackQueue"));
+			String fileName = ".trackQueue";
+			fileName = checkOSAndPreAppendAppDir(fileName);
+			FileOutputStream fos = new FileOutputStream(new File(fileName));
 
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 			oos.writeObject(trackQueue);

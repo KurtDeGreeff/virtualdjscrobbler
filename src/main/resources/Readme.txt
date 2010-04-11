@@ -29,6 +29,8 @@
 1 Introduction
 2 Requirements
 3 Install instructions
+	3.1 Installing
+	3.2 Uninstalling
 4 Starting the program
 5 Settings
 	5.1 Setting the path to the tracklist file
@@ -77,7 +79,17 @@ VirtualDJ is of course required for the program to be useful.
 
 3. Install instructions
 -----------------------
+3.1 Installing
+--------------
 Unzip VirtualDJScrobbler.zip into a directory of your choice.
+
+3.2 Uninstalling
+----------------
+Remove the dir where you extraxted the zip. 
+
+The program will also have created a VirtualDJScrobbler in your %APPDATA% folder:
+%APPDATA%\VirtualDJScrobbler
+Just remove this and the program is completely gone.
 
 4. Starting the program
 -----------------------
