@@ -343,7 +343,7 @@ public class VirtualDJScrobbler extends Thread {
 		if (!lockFile.exists()) {
 			boolean createNewFile = lockFile.createNewFile();
 			if (!createNewFile) {
-				log.error("Could not create log-file.");
+				log.error("Could not create lock-file.");
 				return false;
 			}
 		}
@@ -491,6 +491,9 @@ public class VirtualDJScrobbler extends Thread {
 		String fileName = ".errorstream.log";
 		fileName = checkOSAndPreAppendAppDir(fileName);
 		File file = new File(fileName);
+		if (file.length() > 10 * 1024 * 1024) {
+			file.delete();
+		}
 		try {
 			PrintStream printStream = new PrintStream(new FileOutputStream(
 					file, true));
