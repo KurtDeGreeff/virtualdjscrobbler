@@ -62,6 +62,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -94,6 +95,7 @@ import javax.swing.event.HyperlinkEvent.EventType;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.RollingFileAppender;
 
 import se.tingne.vdjscrobbler.data.LastFMTrack;
 import se.tingne.vdjscrobbler.data.LastFMUser;
@@ -107,7 +109,7 @@ import se.tingne.vdjscrobbler.workerthreads.ValidateUserThread;
  */
 public class VirtualDJScrobbler extends Thread {
 	private static final String NAME = "VirtualDJScrobbler";
-	private static final String VERSION = "0.1.3";
+	private static final String VERSION = "0.1.4";
 
 	private static final String USERS_PREFERENCE = "USERS";
 	private static final String TRACKLIST_FILE_PREFERENCE = "TRACKLIST";
@@ -134,6 +136,7 @@ public class VirtualDJScrobbler extends Thread {
 	private boolean isValidating;
 
 	public VirtualDJScrobbler() {
+		updateLog4jFilename();
 		log.debug("--------------");
 		log.debug("Starting up...");
 		log.debug("--------------");
@@ -355,10 +358,41 @@ public class VirtualDJScrobbler extends Thread {
 		String os = System.getProperty("os.name");
 		if (os.toLowerCase().contains("win")
 				&& !os.toLowerCase().contains("xp")) {
-			fileName = System.getProperty("user.home")
-					+ "\\AppData\\Roaming\\VirtualDJScrobbler\\" + fileName;
+			String appDataFolder = System.getenv("appdata");
+			if (appDataFolder == null) {
+				fileName = System.getProperty("user.home")
+						+ "/VirtualDJScrobbler/" + fileName;
+			} else {
+				fileName = appDataFolder + "/VirtualDJScrobbler/" + fileName;
+			}
 		}
 		return fileName;
+	}
+
+	private void updateLog4jFilename() {
+		// because some operating systems are stupid (ahem windows) and
+		// won't allow us to write to our own folder we need to set the
+		// log4j fileappender to the appdata folder and this doesn't
+		// seem to be possible in the config file so I'm doing it
+		// programatically instead...
+		@SuppressWarnings("rawtypes")
+		Enumeration allAppenders = Logger.getRootLogger().getAllAppenders();
+		while (allAppenders.hasMoreElements()) {
+			Object object = allAppenders.nextElement();
+			if (object instanceof RollingFileAppender) {
+				RollingFileAppender appender = (RollingFileAppender) object;
+				String originalFilename = appender.getFile();
+				appender.setFile(checkOSAndPreAppendAppDir(originalFilename));
+				appender.activateOptions();
+				// remove the original logfile if it has been created (this can
+				// happen if the program isn't run from program files folder or
+				// the likes
+				File file = new File(originalFilename);
+				if (file.exists()) {
+					file.delete();
+				}
+			}
+		}
 	}
 
 	@Override
