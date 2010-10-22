@@ -90,8 +90,8 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.event.HyperlinkEvent.EventType;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
@@ -227,11 +227,9 @@ public class VirtualDJScrobbler extends Thread {
 		splashScreenItem.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				preferences.putBoolean(SPLASH_PREFERENCE, splashScreenItem
-						.getState());
-				log
-						.info("Splash screen is now: "
-								+ splashScreenItem.getState());
+				preferences.putBoolean(SPLASH_PREFERENCE,
+						splashScreenItem.getState());
+				log.info("Splash screen is now: " + splashScreenItem.getState());
 			}
 		});
 		final MenuItem addUserItem = new MenuItem("Add user");
@@ -325,14 +323,13 @@ public class VirtualDJScrobbler extends Thread {
 		try {
 			systemTray.add(trayIcon);
 			if (preferences.getBoolean(POPUPS_PREFERENCE, true)) {
-				trayIcon
-						.displayMessage(
-								NAME + " started",
-								NAME
-										+ " "
-										+ VERSION
-										+ " is now running in the background, right click the system tray icon for options.",
-								MessageType.INFO);
+				trayIcon.displayMessage(
+						NAME + " started",
+						NAME
+								+ " "
+								+ VERSION
+								+ " is now running in the background, right click the system tray icon for options.",
+						MessageType.INFO);
 			}
 		} catch (AWTException e) {
 			log.error("Couldn't add tray icon", e);
@@ -382,6 +379,9 @@ public class VirtualDJScrobbler extends Thread {
 			if (object instanceof RollingFileAppender) {
 				RollingFileAppender appender = (RollingFileAppender) object;
 				String originalFilename = appender.getFile();
+				if (originalFilename == null) {
+					originalFilename = "vdjscrobbler.log";
+				}
 				appender.setFile(checkOSAndPreAppendAppDir(originalFilename));
 				appender.activateOptions();
 				// remove the original logfile if it has been created (this can
@@ -440,11 +440,11 @@ public class VirtualDJScrobbler extends Thread {
 				}
 				String[] dateArray = dateString.split("/");
 				while (line != null) {
-					calendar.set(Integer.parseInt(dateArray[0]), Integer
-							.parseInt(dateArray[1]) - 1, Integer
-							.parseInt(dateArray[2]), Integer.parseInt(line
-							.substring(0, 2)), Integer.parseInt(line.substring(
-							3, 5)));
+					calendar.set(Integer.parseInt(dateArray[0]),
+							Integer.parseInt(dateArray[1]) - 1,
+							Integer.parseInt(dateArray[2]),
+							Integer.parseInt(line.substring(0, 2)),
+							Integer.parseInt(line.substring(3, 5)));
 					if (calendar.after(lastTime)) {
 						lastTime.setTimeInMillis(calendar.getTimeInMillis());
 						log.debug("Added " + line.substring(7));
@@ -461,10 +461,9 @@ public class VirtualDJScrobbler extends Thread {
 						try {
 							Thread.sleep(5000);
 						} catch (InterruptedException e) {
-							log
-									.error(
-											"Sleep interrupted while waiting to submit now playing track",
-											e);
+							log.error(
+									"Sleep interrupted while waiting to submit now playing track",
+									e);
 						}
 						LastFMTrack nowPlayingTrack = new LastFMTrack(artist,
 								title,
@@ -600,20 +599,11 @@ public class VirtualDJScrobbler extends Thread {
 			} catch (Exception e) {
 			}
 		} catch (FileNotFoundException e) {
-			log
-					.warn(
-							"Could not find tracksQueue file, creating a new queue",
-							e);
+			log.warn("Could not find tracksQueue file, creating a new queue", e);
 		} catch (IOException e) {
-			log
-					.warn(
-							"Could not read tracksQueue file, creating a new queue",
-							e);
+			log.warn("Could not read tracksQueue file, creating a new queue", e);
 		} catch (ClassNotFoundException e) {
-			log
-					.warn(
-							"Could not read tracksQueue file, creating a new queue",
-							e);
+			log.warn("Could not read tracksQueue file, creating a new queue", e);
 		}
 		if (trackQueue == null) {
 			trackQueue = new LinkedList<LastFMTrack>();
@@ -699,52 +689,46 @@ public class VirtualDJScrobbler extends Thread {
 						.compile("VirtualDJ History - (19|20)\\d\\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])");
 				if (firstThreeLines[0] == null
 						|| firstThreeLines[0].length() != 0) {
-					log
-							.debug("File: "
-									+ selectedFile.getAbsolutePath()
-									+ " is not a valid tracklist file since it doesn't start with an empty line");
+					log.debug("File: "
+							+ selectedFile.getAbsolutePath()
+							+ " is not a valid tracklist file since it doesn't start with an empty line");
 					return "File: "
 							+ selectedFile.getAbsolutePath()
 							+ " is not a valid tracklist file since it doesn't start with an empty line";
 				} else if (firstThreeLines[1] == null
 						|| !pattern.matcher(firstThreeLines[1]).matches()) {
-					log
-							.debug("File: "
-									+ selectedFile.getAbsolutePath()
-									+ " is not a valid tracklist file since the second line doesn't start with \"VirtualDJ History - YYYY/MM/DD\"");
+					log.debug("File: "
+							+ selectedFile.getAbsolutePath()
+							+ " is not a valid tracklist file since the second line doesn't start with \"VirtualDJ History - YYYY/MM/DD\"");
 					return "File: "
 							+ selectedFile.getAbsolutePath()
 							+ " is not a valid tracklist file since the second line doesn't start with \"VirtualDJ History - YYYY/MM/DD\"";
 				} else if (firstThreeLines[2] == null
 						|| !firstThreeLines[2]
 								.equals("------------------------------")) {
-					log
-							.debug("File: "
-									+ selectedFile.getAbsolutePath()
-									+ " is not a valid tracklist file since the third line doesn't equal \"------------------------------\"");
+					log.debug("File: "
+							+ selectedFile.getAbsolutePath()
+							+ " is not a valid tracklist file since the third line doesn't equal \"------------------------------\"");
 					return "File: "
 							+ selectedFile.getAbsolutePath()
 							+ " is not a valid tracklist file since the third line doesn't equal \"------------------------------\"";
 				} else {
-					log
-							.debug("File: "
-									+ selectedFile.getAbsolutePath()
-									+ " appears to be a valid virtual dj tracklist file");
+					log.debug("File: "
+							+ selectedFile.getAbsolutePath()
+							+ " appears to be a valid virtual dj tracklist file");
 					return "";
 				}
 			} catch (FileNotFoundException e) {
-				log
-						.debug("File: "
-								+ selectedFile.getAbsolutePath()
-								+ " is not a valid tracklist file since it doesn't exist");
+				log.debug("File: "
+						+ selectedFile.getAbsolutePath()
+						+ " is not a valid tracklist file since it doesn't exist");
 				return "File: "
 						+ selectedFile.getAbsolutePath()
 						+ " is not a valid tracklist file since it doesn't exist";
 			} catch (IOException e) {
-				log
-						.debug("File: "
-								+ selectedFile.getAbsolutePath()
-								+ " is not a valid tracklist file since it cannot be read");
+				log.debug("File: "
+						+ selectedFile.getAbsolutePath()
+						+ " is not a valid tracklist file since it cannot be read");
 				return "File: "
 						+ selectedFile.getAbsolutePath()
 						+ " is not a valid tracklist file since it cannot be read";
@@ -771,9 +755,7 @@ public class VirtualDJScrobbler extends Thread {
 			for (String user : usersStrings) {
 				user = user.replace("</user>", "");
 				String[] split = user.split("=");
-				users
-						.put(split[0], new LastFMUser(split[0], split[1],
-								i * 250));
+				users.put(split[0], new LastFMUser(split[0], split[1], i * 250));
 				i++;
 			}
 		}
@@ -811,10 +793,9 @@ public class VirtualDJScrobbler extends Thread {
 							"Bad Auth", JOptionPane.ERROR_MESSAGE);
 			users.remove(user.getUsername());
 			setUsersPreference(users);
-			log
-					.warn("User "
-							+ user.getUsername()
-							+ " has wrong credentials has been removed and re-add popup will be shown.");
+			log.warn("User "
+					+ user.getUsername()
+					+ " has wrong credentials has been removed and re-add popup will be shown.");
 			mainFrame.setVisible(false);
 			addUser();
 			dialogShowing = false;
@@ -831,8 +812,7 @@ public class VirtualDJScrobbler extends Thread {
 						"Your computer clock is to much of the actual time, please adjust and restart program",
 						"Bad Time", JOptionPane.ERROR_MESSAGE);
 		mainFrame.setVisible(false);
-		log
-				.fatal("Users computer clock is to much of the actual time, exiting");
+		log.fatal("Users computer clock is to much of the actual time, exiting");
 		exit(1);
 	}
 
@@ -875,11 +855,9 @@ public class VirtualDJScrobbler extends Thread {
 			oos.close();
 			fos.close();
 		} catch (FileNotFoundException e) {
-			log
-					.error("Couldn't save tracks queue, new queue will be created next time application is run");
+			log.error("Couldn't save tracks queue, new queue will be created next time application is run");
 		} catch (IOException e) {
-			log
-					.error("Couldn't save tracks queue, new queue will be created next time application is run");
+			log.error("Couldn't save tracks queue, new queue will be created next time application is run");
 		}
 	}
 
@@ -905,8 +883,8 @@ public class VirtualDJScrobbler extends Thread {
 					&& password.getPassword().length > 0) {
 				try {
 					LastFMUser user = new LastFMUser(userName.getText(),
-							md5(new String(password.getPassword())), users
-									.size() * 250);
+							md5(new String(password.getPassword())),
+							users.size() * 250);
 					if (users.get(user.getUsername()) != null) {
 						mainFrame.setVisible(true);
 						mainFrame.setTitle(NAME + " - Didn't add user");
@@ -929,10 +907,9 @@ public class VirtualDJScrobbler extends Thread {
 										"Didn't add user",
 										JOptionPane.WARNING_MESSAGE);
 						mainFrame.setVisible(false);
-						log
-								.warn("User: "
-										+ user.getUsername()
-										+ " couldn't be added, maximum allowed number of users is 50.");
+						log.warn("User: "
+								+ user.getUsername()
+								+ " couldn't be added, maximum allowed number of users is 50.");
 						validated = true;
 					} else {
 						validated = validateUser(user);
@@ -1084,9 +1061,8 @@ public class VirtualDJScrobbler extends Thread {
 		html.append("<body>");
 		html.append("<p style=\"font-family:tahoma;font-size:11\">");
 		html.append("This client has sadly been banned, please send email to ");
-		html
-				.append("<a href=mailto:vdjscrobbler@gmail.com?subject=Client%20(version:%20"
-						+ VERSION + ")%20banned>vdjscrobbler@gmail.com</a>");
+		html.append("<a href=mailto:vdjscrobbler@gmail.com?subject=Client%20(version:%20"
+				+ VERSION + ")%20banned>vdjscrobbler@gmail.com</a>");
 		html.append("</p>");
 		html.append("</body>");
 		html.append("</html>");
@@ -1101,24 +1077,17 @@ public class VirtualDJScrobbler extends Thread {
 		html.append("<b>Version:</b>&nbsp;" + VERSION);
 		html.append("<br/><b>Created by:</b>&nbsp;Magnus Tingne 2009");
 		html.append("<br/><b>Copyright:</b>&nbsp;Magnus Tingne 2009");
-		html
-				.append("<br/><b>Licence:</b>&nbsp;The code of this software is released under the");
-		html
-				.append("<br/><a href=http://www.gnu.org/licenses/gpl.txt>GNU General Public License v3</a>");
-		html
-				.append("<br/><b>Content licence:</b>&nbsp;The content in this software is released under");
-		html
-				.append("<br/><a href=http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>Creative Commons 3.0 BY-SA</a>");
+		html.append("<br/><b>Licence:</b>&nbsp;The code of this software is released under the");
+		html.append("<br/><a href=http://www.gnu.org/licenses/gpl.txt>GNU General Public License v3</a>");
+		html.append("<br/><b>Content licence:</b>&nbsp;The content in this software is released under");
+		html.append("<br/><a href=http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>Creative Commons 3.0 BY-SA</a>");
 		URL poweredByUrl = ClassLoader.getSystemResource("poweredby.png");
-		html
-				.append("<br/><b>Support:</b>&nbsp;<a href=mailto:vdjscrobbler@gmail.com?subject=support>vdjscrobbler@gmail.com</a>");
+		html.append("<br/><b>Support:</b>&nbsp;<a href=mailto:vdjscrobbler@gmail.com?subject=support>vdjscrobbler@gmail.com</a>");
 		URL donateUrl = ClassLoader.getSystemResource("donate.gif");
-		html
-				.append("<br/><br/><a href=https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NRMM5NEBFQPW&lc=SE&item_name=VirtualDJScrobbler&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted><img alt=\"Donate\" src="
-						+ donateUrl + " border=\"0\" align=\"middle\"/></a>");
-		html
-				.append("<br/><br/><a href=http://www.lastfm.com><img alt=\"Powered by Audioscrobbler\" src="
-						+ poweredByUrl + " border=\"0\" align=\"middle\"/></a>");
+		html.append("<br/><br/><a href=https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NRMM5NEBFQPW&lc=SE&item_name=VirtualDJScrobbler&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted><img alt=\"Donate\" src="
+				+ donateUrl + " border=\"0\" align=\"middle\"/></a>");
+		html.append("<br/><br/><a href=http://www.lastfm.com><img alt=\"Powered by Audioscrobbler\" src="
+				+ poweredByUrl + " border=\"0\" align=\"middle\"/></a>");
 		html.append("</p>");
 		html.append("</body>");
 		html.append("</html>");
@@ -1182,8 +1151,7 @@ public class VirtualDJScrobbler extends Thread {
 						}
 					}
 				} else {
-					log
-							.info("Desktop API not supported, browser/mail program cannot be opened");
+					log.info("Desktop API not supported, browser/mail program cannot be opened");
 				}
 			}
 		}
