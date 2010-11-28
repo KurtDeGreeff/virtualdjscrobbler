@@ -39,9 +39,10 @@
 	5.4 Checking what users are stored and removing users
 	5.5 Stop popups from showing
 	5.6 Skipping the splash-screen
-	5.7 Autostarting VirtualDJ
-	5.8 Setting the path to the VirtualDJ executable
-	5.9 Autoexit when VirtualDJ is closed
+	5.7 VirtualDJ Options
+		5.7.1 Autostarting VirtualDJ
+		5.7.2 Setting the path to the VirtualDJ executable
+		5.7.3 Autoexit when VirtualDJ is closed
 6 Known limitations
 7 FAQ
 8 Licence
