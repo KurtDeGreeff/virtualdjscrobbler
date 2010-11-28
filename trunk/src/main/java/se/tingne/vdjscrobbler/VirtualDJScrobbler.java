@@ -30,6 +30,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Menu;
 import java.awt.MenuItem;
 import java.awt.MenuShortcut;
 import java.awt.PopupMenu;
@@ -109,13 +110,16 @@ import se.tingne.vdjscrobbler.workerthreads.ValidateUserThread;
  */
 public class VirtualDJScrobbler extends Thread {
 	private static final String NAME = "VirtualDJScrobbler";
-	private static final String VERSION = "0.1.4";
+	private static final String VERSION = "0.2";
 
 	private static final String USERS_PREFERENCE = "USERS";
 	private static final String TRACKLIST_FILE_PREFERENCE = "TRACKLIST";
 	private static final String REFRESH_INTERVAL_PREFERENCE = "REFRESH";
 	private static final String POPUPS_PREFERENCE = "POPUPS";
 	private static final String SPLASH_PREFERENCE = "SPLASH";
+	private static final String AUTOSTART_VDJ_PREFERENCE = "AUTOSTART_VDJ";
+	private static final String VDJ_LOCATION = "VDJ_LOCATION";
+	private static final String AUTOKILL_VDJSCROBBLER_PREFERENCE = "AUTOKILL_VDJ_PREFERENCE";
 	private static Logger log = org.apache.log4j.Logger
 			.getLogger(VirtualDJScrobbler.class);
 	private Calendar lastTime = Calendar.getInstance(Locale.getDefault());
@@ -134,6 +138,7 @@ public class VirtualDJScrobbler extends Thread {
 	private File lockFile;
 	private FileLock lock;
 	private boolean isValidating;
+	private Thread autokillerThread;
 
 	public VirtualDJScrobbler() {
 		updateLog4jFilename();
@@ -163,6 +168,48 @@ public class VirtualDJScrobbler extends Thread {
 		}
 		long splashTime = 3000;
 		final SplashScreen splash = SplashScreen.getSplashScreen();
+		if (preferences.getBoolean(AUTOSTART_VDJ_PREFERENCE, false)) {
+			String vdjLocation = preferences.get(VDJ_LOCATION, "");
+			File file = new File(vdjLocation);
+			if (file.exists()) {
+				try {
+					final Process vdjProcess = Runtime.getRuntime().exec(
+							vdjLocation);
+					if (preferences.getBoolean(
+							AUTOKILL_VDJSCROBBLER_PREFERENCE, false)) {
+						autokillerThread = new Thread() {
+							@Override
+							public void run() {
+								try {
+									vdjProcess.waitFor();
+									exit(0);
+								} catch (InterruptedException e) {
+									log.error(
+											"Thread waiting for VirtualDJ interrupted",
+											e);
+								}
+							}
+						};
+						autokillerThread.start();
+					}
+				} catch (IOException e1) {
+					log.error("Could not autostart VirtualDJ", e1);
+					mainFrame.setVisible(true);
+					mainFrame.setTitle(NAME + " - could not start VirtualDJ");
+					dialogShowing = true;
+					JOptionPane
+							.showMessageDialog(
+									mainFrame,
+									createEditorPane(generateBannedHTML()),
+									"VirtualDJ could not be autostarted, please check that the location of the executable is correct",
+									JOptionPane.ERROR_MESSAGE);
+					mainFrame.setVisible(false);
+				}
+			} else {
+				log.error("Could not autostart VirtualDJ, couldn't find file: "
+						+ file.getAbsolutePath());
+			}
+		}
 		if (splash == null) {
 			log.warn("No splash-screen available");
 		} else {
@@ -211,6 +258,20 @@ public class VirtualDJScrobbler extends Thread {
 				exit(0);
 			}
 		});
+		final MenuItem vdjLocationItem = new MenuItem(
+				"Set VirtualDJ executable");
+		vdjLocationItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (!dialogShowing) {
+					dialogShowing = true;
+					updateVDJLocation();
+					dialogShowing = false;
+				} else {
+					mainFrame.toFront();
+				}
+			}
+		});
 		final CheckboxMenuItem popupItem = new CheckboxMenuItem(
 				"Show tray popups", preferences.getBoolean(POPUPS_PREFERENCE,
 						true));
@@ -232,6 +293,58 @@ public class VirtualDJScrobbler extends Thread {
 				log.info("Splash screen is now: " + splashScreenItem.getState());
 			}
 		});
+		final CheckboxMenuItem autokillVDJScrobblerItem = new CheckboxMenuItem(
+				"Exit when VDJ is closed", preferences.getBoolean(
+						AUTOKILL_VDJSCROBBLER_PREFERENCE, false));
+		autokillVDJScrobblerItem.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				boolean autokill = autokillVDJScrobblerItem.getState();
+				preferences.putBoolean(AUTOKILL_VDJSCROBBLER_PREFERENCE,
+						autokill);
+				if (!autokill) {
+					if (autokillerThread != null && autokillerThread.isAlive()) {
+						autokillerThread.interrupt();
+					}
+				} else {
+					dialogShowing = true;
+					mainFrame.setVisible(true);
+					mainFrame.setTitle(NAME + " - Exit when VDJ is closed");
+					JOptionPane
+							.showMessageDialog(
+									mainFrame,
+									"Note: this will only have effect when VirtualDJ has been started by VirtualDJScrobbler",
+									"Exit when VDJ is closed",
+									JOptionPane.PLAIN_MESSAGE);
+					mainFrame.setVisible(false);
+					dialogShowing = false;
+				}
+				log.info("Autokill VDJ is now: " + autokill);
+			}
+		});
+		final CheckboxMenuItem autostartVDJitem = new CheckboxMenuItem(
+				"Autostart VirtualDJ", preferences.getBoolean(
+						AUTOSTART_VDJ_PREFERENCE, false));
+		autostartVDJitem.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				boolean autostart = autostartVDJitem.getState();
+				if (autostart) {
+					String vdjLocation = preferences.get(VDJ_LOCATION, "");
+					File vdjFile = new File(vdjLocation);
+					if (!vdjFile.exists()) {
+						boolean cancelled = updateVDJLocation();
+						// don't autostart if cancelled
+						autostart = !cancelled;
+					}
+				}
+				preferences.putBoolean(AUTOSTART_VDJ_PREFERENCE, autostart);
+				autostartVDJitem.setState(autostart);
+				autokillVDJScrobblerItem.setEnabled(autostart);
+				log.info("Autostart VDJ is now: " + autostart);
+			}
+		});
+		autokillVDJScrobblerItem.setEnabled(autostartVDJitem.getState());
 		final MenuItem addUserItem = new MenuItem("Add user");
 		addUserItem.addActionListener(new ActionListener() {
 			@Override
@@ -307,6 +420,11 @@ public class VirtualDJScrobbler extends Thread {
 			}
 
 		});
+		Menu vdjSubMenu = new Menu("VirtualDJ options");
+		vdjSubMenu.add(autostartVDJitem);
+		vdjSubMenu.add(vdjLocationItem);
+		vdjSubMenu.add(autokillVDJScrobblerItem);
+
 		menu.add(aboutItem);
 		menu.addSeparator();
 		menu.add(refreshIntervalItem);
@@ -317,6 +435,8 @@ public class VirtualDJScrobbler extends Thread {
 		menu.addSeparator();
 		menu.add(popupItem);
 		menu.add(splashScreenItem);
+		menu.addSeparator();
+		menu.add(vdjSubMenu);
 		menu.addSeparator();
 		menu.add(exitItem);
 		trayIcon.setPopupMenu(menu);
@@ -367,7 +487,7 @@ public class VirtualDJScrobbler extends Thread {
 	}
 
 	private void updateLog4jFilename() {
-		// because some operating systems are stupid (ahem windows) and
+		// because some operating systems are stupid (ahem Windows) and
 		// won't allow us to write to our own folder we need to set the
 		// log4j fileappender to the appdata folder and this doesn't
 		// seem to be possible in the config file so I'm doing it
@@ -608,6 +728,84 @@ public class VirtualDJScrobbler extends Thread {
 		if (trackQueue == null) {
 			trackQueue = new LinkedList<LastFMTrack>();
 		}
+	}
+
+	private boolean updateVDJLocation() {
+		boolean cancelled;
+		String vdjLocation = preferences.get(VDJ_LOCATION, "");
+		do {
+			vdjLocation = showVJDFileChooser(vdjLocation);
+			if (vdjLocation != null
+					&& (!vdjLocation.endsWith("virtualdj.exe") || !new File(
+							vdjLocation).exists())) {
+				JOptionPane.showMessageDialog(mainFrame, "The path \""
+						+ vdjLocation
+						+ "\" is invalid, please choose another file.",
+						"Invalid VDJ location", JOptionPane.WARNING_MESSAGE);
+			}
+		} while (vdjLocation != null
+				&& (!vdjLocation.endsWith("virtualdj.exe") || !new File(
+						vdjLocation).exists()));
+		cancelled = vdjLocation == null;
+		if (!cancelled) {
+			preferences.put(VDJ_LOCATION, vdjLocation);
+			log.debug("Path to virtual dj executable file set to: "
+					+ preferences.get(VDJ_LOCATION, "Couldn't get preference"));
+		}
+		return cancelled;
+	}
+
+	protected String showVJDFileChooser(String originalPath) {
+		final JFileChooser fileChooser = new JFileChooser();
+		// FileSystemView fw = fileChooser.getFileSystemView();
+		// fw.getDefaultDirectory();
+		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		fileChooser.setFileFilter(new FileFilter() {
+			@Override
+			public boolean accept(File f) {
+				return f.getName().equals("virtualdj.exe") || f.isDirectory();
+			}
+
+			@Override
+			public String getDescription() {
+				return "virtualdj.exe";
+			}
+		});
+		fileChooser.setMultiSelectionEnabled(false);
+		fileChooser.setFileHidingEnabled(true);
+		fileChooser.setAcceptAllFileFilterUsed(false);
+		fileChooser.setCurrentDirectory(new File(originalPath));
+
+		final JTextField textField = new JTextField(originalPath);
+		textField.setColumns(100);
+		JButton button = new JButton("Browse...");
+		button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int openDialog = fileChooser.showOpenDialog(null);
+				if (openDialog == JFileChooser.APPROVE_OPTION) {
+					textField.setText(fileChooser.getSelectedFile()
+							.getAbsolutePath());
+				}
+			}
+		});
+
+		JPanel panel = new JPanel();
+		panel.add(textField);
+		panel.add(button);
+
+		mainFrame.setVisible(true);
+		mainFrame.setTitle(NAME + " - Set path to VirtualDJ executable");
+		int confirmDialog = JOptionPane.showConfirmDialog(mainFrame, panel,
+				"Set path to VirtualDJ executable",
+				JOptionPane.OK_CANCEL_OPTION);
+		mainFrame.setVisible(false);
+
+		if (confirmDialog == JOptionPane.CANCEL_OPTION) {
+			return null;
+		}
+
+		return textField.getText();
 	}
 
 	protected String showTracklistFileChooser(String originalPath) {
