@@ -39,6 +39,9 @@
 	5.4 Checking what users are stored and removing users
 	5.5 Stop popups from showing
 	5.6 Skipping the splash-screen
+	5.7 Autostarting VirtualDJ
+	5.8 Setting the path to the VirtualDJ executable
+	5.9 Autoexit when VirtualDJ is closed
 6 Known limitations
 7 FAQ
 8 Licence
@@ -169,11 +172,39 @@ Note: A splash-screen might popup for a very short while even if the option is
 deselected, this is due to the fact that the splash-screen cannot be hidden
 before the java runtime machine has fully started the program.
 
+5.7 VirtualDJ options
+---------------------
+5.7.1 Autostarting VirtualDJ
+--------------------------
+If you would like VirtualDJScrobbler to automatically start VirtualDJ when starting
+up check this option.
+
+If the path to the VirtualDJ executable hasn't been set (see section 5.7.2) you will
+be requested to set the path when selecting autostart. If you cancel this popup
+the autostart option will not be selected.
+
+5.7.2 Setting the path to the VirtualDJ executable
+------------------------------------------------
+To be able to use the autostart VirtualDJ function you must set the path to the
+VirtualDJ executable. To do this simply press the "Set VirtualDJ executable" option 
+and either enter the full path to the "virtualdj.exe" file, or select browse and
+locate the executable in the file explorer.
+
+5.7.3 Autoexit when VirtualDJ is closed
+-------------------------------------
+If you want VirtualDJScrobbler to automatically exit once VirtualDJ is closed
+you can enable it by clicking the "Exit when VDJ is closed" option.
+
+This option depends on the "Autostart VirtualDJ" option and will only be possible
+to set when autostart is activated. The reason for this is that the only way 
+VirtualDJScrobbler can know about VirtualDJ is if it has been started from within
+VirtualDJScrobbler, i.e. via the autostart option. 
+
 6. Known limitations
 --------------------
-The program has only been tested on Windows XP with VirtualDJ v6.0, it might for
-example be that other versions of VirtualDJ stores the tracklist file in another 
-format.
+The program has only been tested on Windows XP and Windows 7 x64 with VirtualDJ 
+v6.0, it might, for example, be that other versions of VirtualDJ stores the
+tracklist file in another format.
 
 The error handling of the program hasn't been thoroughly tested since most error 
 responses from last.fm doesn't occur very often.
