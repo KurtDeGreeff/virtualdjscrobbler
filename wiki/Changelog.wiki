@@ -1,5 +1,7 @@
 #summary Shows the changelog
-
+<wiki:comment>
+Current version=0.2
+</wiki:comment>
 = Changelog =
 
 0.2:
