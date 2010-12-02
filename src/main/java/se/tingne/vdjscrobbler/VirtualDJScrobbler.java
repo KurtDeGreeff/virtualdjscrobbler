@@ -51,12 +51,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.channels.FileLock;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -120,6 +122,7 @@ public class VirtualDJScrobbler extends Thread {
 	private static final String AUTOSTART_VDJ_PREFERENCE = "AUTOSTART_VDJ";
 	private static final String VDJ_LOCATION = "VDJ_LOCATION";
 	private static final String AUTOKILL_VDJSCROBBLER_PREFERENCE = "AUTOKILL_VDJ_PREFERENCE";
+	private static final String CHECK_FOR_UPDATE_PREFERENCE = "AUTOKILL_VDJ_PREFERENCE";
 	private static Logger log = org.apache.log4j.Logger
 			.getLogger(VirtualDJScrobbler.class);
 	private Calendar lastTime = Calendar.getInstance(Locale.getDefault());
@@ -147,87 +150,9 @@ public class VirtualDJScrobbler extends Thread {
 		log.debug("--------------");
 		setErrorStream();
 		preferences = Preferences.userNodeForPackage(this.getClass());
-		boolean locked = true;
-		try {
-			locked = obtainLock();
-		} catch (IOException e) {
-			log.error("Error in obtaining lock", e);
-			locked = false;
-		}
-		if (!locked) {
-			log.warn("Could not obtain lock");
-			JOptionPane
-					.showMessageDialog(
-							mainFrame,
-							"Only one instance of "
-									+ NAME
-									+ " can be run at a time, please exit all other instances.\nIf no other instances are running try going to program directory and delete the \".lock\" file",
-							"Multiple instances disallowed",
-							JOptionPane.ERROR_MESSAGE);
-			System.exit(1);
-		}
-		long splashTime = 3000;
-		final SplashScreen splash = SplashScreen.getSplashScreen();
-		if (preferences.getBoolean(AUTOSTART_VDJ_PREFERENCE, false)) {
-			String vdjLocation = preferences.get(VDJ_LOCATION, "");
-			File file = new File(vdjLocation);
-			if (file.exists()) {
-				try {
-					final Process vdjProcess = Runtime.getRuntime().exec(
-							vdjLocation);
-					if (preferences.getBoolean(
-							AUTOKILL_VDJSCROBBLER_PREFERENCE, false)) {
-						autokillerThread = new Thread() {
-							@Override
-							public void run() {
-								try {
-									vdjProcess.waitFor();
-									exit(0);
-								} catch (InterruptedException e) {
-									log.error(
-											"Thread waiting for VirtualDJ interrupted",
-											e);
-								}
-							}
-						};
-						autokillerThread.start();
-					}
-				} catch (IOException e1) {
-					log.error("Could not autostart VirtualDJ", e1);
-					mainFrame.setVisible(true);
-					mainFrame.setTitle(NAME + " - could not start VirtualDJ");
-					dialogShowing = true;
-					JOptionPane
-							.showMessageDialog(
-									mainFrame,
-									createEditorPane(generateBannedHTML()),
-									"VirtualDJ could not be autostarted, please check that the location of the executable is correct",
-									JOptionPane.ERROR_MESSAGE);
-					mainFrame.setVisible(false);
-				}
-			} else {
-				log.error("Could not autostart VirtualDJ, couldn't find file: "
-						+ file.getAbsolutePath());
-			}
-		}
-		if (splash == null) {
-			log.warn("No splash-screen available");
-		} else {
-			if (preferences.getBoolean(SPLASH_PREFERENCE, true)) {
-				Graphics2D g = splash.createGraphics();
-				if (g == null) {
-					splashTime = 0;
-					log.warn("Couldn't get graphics for splash screen");
-				}
-				try {
-					Thread.sleep(splashTime);
-					splash.close();
-				} catch (InterruptedException e) {
-				}
-			} else {
-				splash.close();
-			}
-		}
+		handleLocking();
+		handleSplashScreen();
+		handleAutostartVDJ();
 		validationSuccess = false;
 		dialogShowing = false;
 		mainFrame = new JFrame();
@@ -244,11 +169,52 @@ public class VirtualDJScrobbler extends Thread {
 		lastTime.setTimeInMillis(System.currentTimeMillis());
 		users = getUsersPreference();
 		createQueueReaderThreads();
+		setupTray();
+		checkForUpdate();
+	}
+
+	private void checkForUpdate() {
+		if (preferences.getBoolean(CHECK_FOR_UPDATE_PREFERENCE, false)) {
+			try {
+				URL changelogURL = new URL(
+						"http://code.google.com/p/virtualdjscrobbler/wiki/Changelog"); // TODO:
+																						// url
+																						// in
+																						// property
+				URLConnection connection = changelogURL.openConnection();
+				connection.connect();
+				BufferedReader in = new BufferedReader(new InputStreamReader(
+						connection.getInputStream()));
+				String line;
+				String latestReleaseVersion = "";
+				while ((line = in.readLine()) != null) {
+					if (line.contains("currver=")) {
+						latestReleaseVersion = line.substring(line
+								.indexOf("currver") + "currver".length() + 1);
+						break;
+					}
+				}
+				if (!VERSION.equals(latestReleaseVersion)) {
+					log.info("There is a new version available ("
+							+ latestReleaseVersion + ")");
+					displayMessageDialog(
+							"New version available!",
+							createEditorPane(generateNewVersionHTML(latestReleaseVersion)),
+							JOptionPane.PLAIN_MESSAGE, getLogoImageIcon());
+				}
+				in.close();
+			} catch (Exception e) {
+				log.error("Could not check for update", e);
+			}
+		}
+	}
+
+	private void setupTray() {
 		SystemTray systemTray = SystemTray.getSystemTray();
 		URL url = ClassLoader.getSystemResource("tray.png");
 		Image image = Toolkit.getDefaultToolkit().getImage(url);
 		trayIcon = new TrayIcon(image);
-		trayIcon.setToolTip("VirtualDJScrobbler " + VERSION);
+		trayIcon.setToolTip(NAME + " " + VERSION);
 		trayIcon.setImageAutoSize(true);
 		PopupMenu menu = new PopupMenu();
 		MenuItem exitItem = new MenuItem("Exit");
@@ -293,6 +259,18 @@ public class VirtualDJScrobbler extends Thread {
 				log.info("Splash screen is now: " + splashScreenItem.getState());
 			}
 		});
+		final CheckboxMenuItem checkForUpdates = new CheckboxMenuItem(
+				"Check for updates on startup", preferences.getBoolean(
+						CHECK_FOR_UPDATE_PREFERENCE, false));
+		checkForUpdates.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				preferences.putBoolean(CHECK_FOR_UPDATE_PREFERENCE,
+						checkForUpdates.getState());
+				log.info("Check for update is now: "
+						+ checkForUpdates.getState());
+			}
+		});
 		final CheckboxMenuItem autokillVDJScrobblerItem = new CheckboxMenuItem(
 				"Exit when VDJ is closed", preferences.getBoolean(
 						AUTOKILL_VDJSCROBBLER_PREFERENCE, false));
@@ -307,17 +285,10 @@ public class VirtualDJScrobbler extends Thread {
 						autokillerThread.interrupt();
 					}
 				} else {
-					dialogShowing = true;
-					mainFrame.setVisible(true);
-					mainFrame.setTitle(NAME + " - Exit when VDJ is closed");
-					JOptionPane
-							.showMessageDialog(
-									mainFrame,
-									"Note: this will only have effect when VirtualDJ has been started by VirtualDJScrobbler",
-									"Exit when VDJ is closed",
-									JOptionPane.PLAIN_MESSAGE);
-					mainFrame.setVisible(false);
-					dialogShowing = false;
+					displayMessageDialog(
+							"Exit when VDJ is closed",
+							"Note: this will only have effect when VirtualDJ has been started by VirtualDJScrobbler",
+							JOptionPane.PLAIN_MESSAGE, null);
 				}
 				log.info("Autokill VDJ is now: " + autokill);
 			}
@@ -425,6 +396,9 @@ public class VirtualDJScrobbler extends Thread {
 		vdjSubMenu.add(vdjLocationItem);
 		vdjSubMenu.add(autokillVDJScrobblerItem);
 
+		Menu scrobblerSubMenu = new Menu("Scrobbler options");
+		scrobblerSubMenu.add(checkForUpdates);
+
 		menu.add(aboutItem);
 		menu.addSeparator();
 		menu.add(refreshIntervalItem);
@@ -437,6 +411,8 @@ public class VirtualDJScrobbler extends Thread {
 		menu.add(splashScreenItem);
 		menu.addSeparator();
 		menu.add(vdjSubMenu);
+		menu.addSeparator();
+		menu.add(scrobblerSubMenu);
 		menu.addSeparator();
 		menu.add(exitItem);
 		trayIcon.setPopupMenu(menu);
@@ -453,6 +429,103 @@ public class VirtualDJScrobbler extends Thread {
 			}
 		} catch (AWTException e) {
 			log.error("Couldn't add tray icon", e);
+		}
+	}
+
+	private void displayMessageDialog(String title, Object message,
+			int messageType, ImageIcon imageIcon) {
+		dialogShowing = true;
+		mainFrame.setVisible(true);
+		mainFrame.setTitle(title);
+		JOptionPane.showMessageDialog(mainFrame, message, NAME + " - " + title,
+				messageType, imageIcon);
+		mainFrame.setVisible(false);
+		dialogShowing = false;
+	}
+
+	private void handleAutostartVDJ() {
+		if (preferences.getBoolean(AUTOSTART_VDJ_PREFERENCE, false)) {
+			String vdjLocation = preferences.get(VDJ_LOCATION, "");
+			File file = new File(vdjLocation);
+			if (file.exists()) {
+				try {
+					final Process vdjProcess = Runtime.getRuntime().exec(
+							vdjLocation);
+					if (preferences.getBoolean(
+							AUTOKILL_VDJSCROBBLER_PREFERENCE, false)) {
+						autokillerThread = new Thread() {
+							@Override
+							public void run() {
+								try {
+									vdjProcess.waitFor();
+									exit(0);
+								} catch (InterruptedException e) {
+									log.error(
+											"Thread waiting for VirtualDJ interrupted",
+											e);
+								}
+							}
+						};
+						autokillerThread.start();
+					}
+				} catch (IOException e1) {
+					log.error("Could not autostart VirtualDJ", e1);
+					displayMessageDialog(
+							"Could not start VirtualDJ",
+							"VirtualDJ could not be autostarted, please check that the location of the executable is correct",
+							JOptionPane.ERROR_MESSAGE, null);
+				}
+			} else {
+				log.error("Could not autostart VirtualDJ, couldn't find file: "
+						+ file.getAbsolutePath());
+			}
+		}
+	}
+
+	private void handleSplashScreen() {
+		long splashTime = 3000;
+		final SplashScreen splash = SplashScreen.getSplashScreen();
+		if (splash == null) {
+			log.warn("No splash-screen available");
+		} else {
+			if (preferences.getBoolean(SPLASH_PREFERENCE, true)) {
+				Graphics2D g = splash.createGraphics();
+				if (g == null) {
+					splashTime = 0;
+					log.warn("Couldn't get graphics for splash screen");
+				}
+				try {
+					Thread.sleep(splashTime);
+					splash.close();
+				} catch (InterruptedException e) {
+				}
+			} else {
+				splash.close();
+			}
+		}
+	}
+
+	private void handleLocking() {
+		boolean locked = true;
+		try {
+			locked = obtainLock();
+		} catch (IOException e) {
+			log.error("Error in obtaining lock", e);
+			locked = false;
+		}
+		if (!locked) {
+			log.warn("Could not obtain lock");
+			// don't use displayDialog here because this happens before
+			// everything is set up
+			JOptionPane
+					.showMessageDialog(
+							mainFrame,
+							"Only one instance of "
+									+ NAME
+									+ " can be run at a time, please exit all other instances.\nIf no other instances are running try going to program directory and delete the \".lock\" file",
+							"Multiple instances disallowed",
+							JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
 		}
 	}
 
@@ -532,12 +605,9 @@ public class VirtualDJScrobbler extends Thread {
 			String validationResult;
 			while (!(validationResult = validateTrackListFile(f)).equals("")) {
 				log.warn(validationResult);
-				mainFrame.setVisible(true);
-				mainFrame.setTitle(NAME + " - Invalid tracklist file");
-				JOptionPane.showMessageDialog(mainFrame, validationResult
+				displayMessageDialog("Invalid tracklist file", validationResult
 						+ ".\n\rPlease choose another file.",
-						"Invalid tracklist file", JOptionPane.WARNING_MESSAGE);
-				mainFrame.setVisible(false);
+						JOptionPane.WARNING_MESSAGE, null);
 				filePath = showTracklistFileChooser(filePath);
 				if (filePath != null) {
 					f = new File(filePath);
@@ -614,12 +684,6 @@ public class VirtualDJScrobbler extends Thread {
 					}
 					dateArray = dateString.split("/");
 				}
-
-				// if (tracks.size() != 0) {
-				// uploadTracks(tracks);
-				// } else {
-				// log.debug("No new tracks to scrobble");
-				// }
 			} catch (FileNotFoundException e) {
 				log.error("Tracklist file doesn't exist", e);
 			} catch (IOException e) {
@@ -738,10 +802,10 @@ public class VirtualDJScrobbler extends Thread {
 			if (vdjLocation != null
 					&& (!vdjLocation.endsWith("virtualdj.exe") || !new File(
 							vdjLocation).exists())) {
-				JOptionPane.showMessageDialog(mainFrame, "The path \""
+				displayMessageDialog("Invalid VDJ location", "The path \""
 						+ vdjLocation
 						+ "\" is invalid, please choose another file.",
-						"Invalid VDJ location", JOptionPane.WARNING_MESSAGE);
+						JOptionPane.WARNING_MESSAGE, null);
 			}
 		} while (vdjLocation != null
 				&& (!vdjLocation.endsWith("virtualdj.exe") || !new File(
@@ -846,14 +910,10 @@ public class VirtualDJScrobbler extends Thread {
 						textField.setText(fileChooser.getSelectedFile()
 								.getAbsolutePath());
 					} else {
-						mainFrame.setVisible(true);
-						mainFrame.setTitle(NAME + " - Invalid tracklist file");
-						JOptionPane.showMessageDialog(mainFrame,
+						displayMessageDialog("Invalid tracklist file",
 								validatationResult
 										+ ".\n\rPlease choose another file.",
-								"Invalid tracklist file",
-								JOptionPane.WARNING_MESSAGE);
-						mainFrame.setVisible(false);
+								JOptionPane.WARNING_MESSAGE, null);
 					}
 				}
 			}
@@ -863,11 +923,8 @@ public class VirtualDJScrobbler extends Thread {
 		panel.add(textField);
 		panel.add(button);
 
-		mainFrame.setVisible(true);
-		mainFrame.setTitle(NAME + " - Set path to tracklist file");
-		JOptionPane.showMessageDialog(mainFrame, panel,
-				"Set path to tracklist file", JOptionPane.OK_CANCEL_OPTION);
-		mainFrame.setVisible(false);
+		displayMessageDialog("Set path to tracklist file", panel,
+				JOptionPane.PLAIN_MESSAGE, null);
 
 		return textField.getText();
 	}
@@ -961,13 +1018,9 @@ public class VirtualDJScrobbler extends Thread {
 	}
 
 	public void reportClientBanned() {
-		mainFrame.setVisible(true);
-		mainFrame.setTitle(NAME + " - Client Banned");
-		dialogShowing = true;
-		JOptionPane.showMessageDialog(mainFrame,
-				createEditorPane(generateBannedHTML()), "Client Banned",
-				JOptionPane.ERROR_MESSAGE);
-		mainFrame.setVisible(false);
+		displayMessageDialog("Client Banned",
+				createEditorPane(generateBannedHTML()),
+				JOptionPane.ERROR_MESSAGE, null);
 		log.fatal("The client has been reported as banned");
 		System.exit(1);
 	}
@@ -979,37 +1032,26 @@ public class VirtualDJScrobbler extends Thread {
 			validationSuccess = false;
 			log.info("Bad auth reported on user validation");
 		} else {
-			mainFrame.setVisible(true);
-			mainFrame.setTitle(NAME + " - Bad Auth");
-			dialogShowing = true;
-			JOptionPane
-					.showMessageDialog(
-							mainFrame,
-							"The credentials of user: "
-									+ user.getUsername()
-									+ " is wrong, please re-add the user in the next dialog if you want to keep it.",
-							"Bad Auth", JOptionPane.ERROR_MESSAGE);
+			displayMessageDialog(
+					"Bad Auth",
+					"The credentials of user: "
+							+ user.getUsername()
+							+ " is wrong, please re-add the user in the next dialog if you want to keep it.",
+					JOptionPane.ERROR_MESSAGE, null);
 			users.remove(user.getUsername());
 			setUsersPreference(users);
 			log.warn("User "
 					+ user.getUsername()
 					+ " has wrong credentials has been removed and re-add popup will be shown.");
-			mainFrame.setVisible(false);
 			addUser();
-			dialogShowing = false;
 		}
 	}
 
 	public void reportBadTime() {
-		mainFrame.setVisible(true);
-		mainFrame.setTitle(NAME + " - Bad Time");
-		dialogShowing = true;
-		JOptionPane
-				.showMessageDialog(
-						mainFrame,
-						"Your computer clock is to much of the actual time, please adjust and restart program",
-						"Bad Time", JOptionPane.ERROR_MESSAGE);
-		mainFrame.setVisible(false);
+		displayMessageDialog(
+				"Bad Time",
+				"Your computer clock is to much of the actual time, please adjust and restart program",
+				JOptionPane.ERROR_MESSAGE, null);
 		log.fatal("Users computer clock is to much of the actual time, exiting");
 		exit(1);
 	}
@@ -1084,27 +1126,20 @@ public class VirtualDJScrobbler extends Thread {
 							md5(new String(password.getPassword())),
 							users.size() * 250);
 					if (users.get(user.getUsername()) != null) {
-						mainFrame.setVisible(true);
-						mainFrame.setTitle(NAME + " - Didn't add user");
-						JOptionPane.showMessageDialog(mainFrame, "User: "
-								+ user.getUsername() + " already added",
-								"Didn't add user", JOptionPane.WARNING_MESSAGE);
-						mainFrame.setVisible(false);
+						displayMessageDialog("Didn't add user",
+								"User: " + user.getUsername()
+										+ " already added",
+								JOptionPane.WARNING_MESSAGE, null);
 						log.warn("User: " + user.getUsername()
 								+ " already added");
 						validated = true;
 					} else if (users.size() == 50) {
-						mainFrame.setVisible(true);
-						mainFrame.setTitle(NAME + " - Didn't add user");
-						JOptionPane
-								.showMessageDialog(
-										mainFrame,
-										"User: "
-												+ user.getUsername()
-												+ " couldn't be added, maximum allowed number of users is 50.",
-										"Didn't add user",
-										JOptionPane.WARNING_MESSAGE);
-						mainFrame.setVisible(false);
+						displayMessageDialog(
+								"Didn't add user",
+								"User: "
+										+ user.getUsername()
+										+ " couldn't be added, maximum allowed number of users is 50.",
+								JOptionPane.WARNING_MESSAGE, null);
 						log.warn("User: "
 								+ user.getUsername()
 								+ " couldn't be added, maximum allowed number of users is 50.");
@@ -1116,24 +1151,16 @@ public class VirtualDJScrobbler extends Thread {
 							new QueueReaderThread(trackQueue, this, user)
 									.start();
 							log.info("Adding user: " + userName.getText());
-							mainFrame.setVisible(true);
-							mainFrame.setTitle(NAME + " - User added");
-							JOptionPane.showMessageDialog(mainFrame, "User: "
-									+ user.getUsername()
-									+ " successfully added", "User added",
-									JOptionPane.PLAIN_MESSAGE);
-							mainFrame.setVisible(false);
+							displayMessageDialog("User added",
+									"User: " + user.getUsername()
+											+ " successfully added",
+									JOptionPane.PLAIN_MESSAGE, null);
 							setUsersPreference(users);
 						} else {
-							mainFrame.setVisible(true);
-							mainFrame.setTitle(NAME + " - Bad auth");
-							JOptionPane
-									.showMessageDialog(
-											mainFrame,
-											"Bad username/password, please change and try again",
-											"Bad auth",
-											JOptionPane.WARNING_MESSAGE);
-							mainFrame.setVisible(false);
+							displayMessageDialog(
+									"Bad auth",
+									"Bad username/password, please change and try again",
+									JOptionPane.WARNING_MESSAGE, null);
 						}
 					}
 				} catch (NoSuchAlgorithmException e1) {
@@ -1211,11 +1238,8 @@ public class VirtualDJScrobbler extends Thread {
 			removeUsersPanel.add(Box.createVerticalStrut(5), c);
 			c.gridy++;
 		}
-		mainFrame.setVisible(true);
-		mainFrame.setTitle(NAME + " - Remove users");
-		JOptionPane.showMessageDialog(mainFrame, removeUsersPanel,
-				"Remove users", JOptionPane.PLAIN_MESSAGE);
-		mainFrame.setVisible(false);
+		displayMessageDialog("Remove users", removeUsersPanel,
+				JOptionPane.PLAIN_MESSAGE, null);
 		setUsersPreference(users);
 	}
 
@@ -1234,12 +1258,8 @@ public class VirtualDJScrobbler extends Thread {
 		slider.setPaintTrack(true);
 		slider.setSnapToTicks(true);
 		slider.setMinimumSize(new Dimension(300, 20));
-
-		mainFrame.setVisible(true);
-		mainFrame.setTitle(NAME + " - Set file checking interval");
-		JOptionPane.showMessageDialog(mainFrame, slider,
-				"Set file checking interval", JOptionPane.PLAIN_MESSAGE);
-		mainFrame.setVisible(false);
+		displayMessageDialog("Set file checking interval", slider,
+				JOptionPane.PLAIN_MESSAGE, null);
 		preferences.putInt(REFRESH_INTERVAL_PREFERENCE, slider.getValue());
 		log.debug("Refresh interval now set to: " + slider.getValue());
 	}
@@ -1293,16 +1313,33 @@ public class VirtualDJScrobbler extends Thread {
 		return html.toString();
 	}
 
+	private String generateNewVersionHTML(String newVersion) {
+		StringBuffer html = new StringBuffer();
+		html.append("<html>");
+		html.append("<body>");
+		html.append("<p style=\"font-family:tahoma;font-size:11\">");
+		html.append("Version " + newVersion
+				+ " is now available for download: ");
+		html.append("<a href=http://virtualdjscrobbler.googlecode.com/files/VirtualDJScrobbler-"
+				+ newVersion + ".zip>VirtualDJScrobbler " + newVersion + "</a>");
+		html.append("</p>");
+		html.append("</body>");
+		html.append("</html>");
+
+		return html.toString();
+	}
+
 	private void about(final JEditorPane editorPane) {
 		log.debug("Showing about screen");
+		displayMessageDialog("About", editorPane, JOptionPane.PLAIN_MESSAGE,
+				getLogoImageIcon());
+	}
+
+	private ImageIcon getLogoImageIcon() {
 		URL url = ClassLoader.getSystemResource("logo.png");
 		Image image = Toolkit.getDefaultToolkit().getImage(url);
 		ImageIcon imageIcon = new ImageIcon(image);
-		mainFrame.setTitle(NAME + " - About");
-		mainFrame.setVisible(true);
-		JOptionPane.showMessageDialog(mainFrame, editorPane, "About",
-				JOptionPane.PLAIN_MESSAGE, imageIcon);
-		mainFrame.setVisible(false);
+		return imageIcon;
 	}
 
 	public static void main(String[] args) {
