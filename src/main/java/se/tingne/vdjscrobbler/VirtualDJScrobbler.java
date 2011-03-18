@@ -565,7 +565,7 @@ public class VirtualDJScrobbler extends Thread {
 		// log4j fileappender to the appdata folder and this doesn't
 		// seem to be possible in the config file so I'm doing it
 		// programatically instead...
-		@SuppressWarnings("rawtypes")
+		@SuppressWarnings("unchecked")
 		Enumeration allAppenders = Logger.getRootLogger().getAllAppenders();
 		while (allAppenders.hasMoreElements()) {
 			Object object = allAppenders.nextElement();
