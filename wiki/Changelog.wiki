@@ -5,7 +5,7 @@ currver=0.2
 = Changelog =
 
 0.2.1:
-    * Fixed for issue 4, now any file containing the text "virtualdj" can be set as the VirtualDJ executable.
+    * Fix for issue 4, now any file containing the text "virtualdj" can be set as the VirtualDJ executable.
 
 0.2:
     * Added option to autostart VirtualDJ when starting VirtualDJScrobbler.
