@@ -112,7 +112,7 @@ import se.tingne.vdjscrobbler.workerthreads.ValidateUserThread;
  */
 public class VirtualDJScrobbler extends Thread {
 	private static final String NAME = "VirtualDJScrobbler";
-	private static final String VERSION = "0.2";
+	private static final String VERSION = "0.2.1";
 
 	private static final String USERS_PREFERENCE = "USERS";
 	private static final String TRACKLIST_FILE_PREFERENCE = "TRACKLIST";
