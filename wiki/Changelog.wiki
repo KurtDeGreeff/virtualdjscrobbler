@@ -1,6 +1,6 @@
 #summary Shows the changelog
 <wiki:comment>
-currver=0.2
+currver=0.2.1
 </wiki:comment>
 = Changelog =
 
