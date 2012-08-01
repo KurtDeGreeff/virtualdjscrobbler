@@ -123,8 +123,7 @@ public class VirtualDJScrobbler extends Thread {
 	private static final String VDJ_LOCATION = "VDJ_LOCATION";
 	private static final String AUTOKILL_VDJSCROBBLER_PREFERENCE = "AUTOKILL_VDJ_PREFERENCE";
 	private static final String CHECK_FOR_UPDATE_PREFERENCE = "AUTOKILL_VDJ_PREFERENCE";
-	private static Logger log = org.apache.log4j.Logger
-			.getLogger(VirtualDJScrobbler.class);
+	private static Logger log = org.apache.log4j.Logger.getLogger(VirtualDJScrobbler.class);
 	private Calendar lastTime = Calendar.getInstance(Locale.getDefault());
 	private TrayIcon trayIcon;
 	private Map<String, LastFMUser> users;
@@ -162,8 +161,7 @@ public class VirtualDJScrobbler extends Thread {
 		this.setName("VirtualDJScrobbler");
 		loadQueue();
 		if (preferences.get(TRACKLIST_FILE_PREFERENCE, "").equals("")) {
-			preferences.put(TRACKLIST_FILE_PREFERENCE, new JFileChooser()
-					.getFileSystemView().getDefaultDirectory()
+			preferences.put(TRACKLIST_FILE_PREFERENCE, new JFileChooser().getFileSystemView().getDefaultDirectory()
 					+ "/VirtualDJ/Tracklisting/tracklist.txt");
 		}
 		lastTime.setTimeInMillis(System.currentTimeMillis());
@@ -176,30 +174,24 @@ public class VirtualDJScrobbler extends Thread {
 	private void checkForUpdate() {
 		if (preferences.getBoolean(CHECK_FOR_UPDATE_PREFERENCE, false)) {
 			try {
-				URL changelogURL = new URL(
-						"http://code.google.com/p/virtualdjscrobbler/wiki/Changelog"); // TODO:
-																						// url
-																						// in
-																						// property
+				URL changelogURL = new URL("http://code.google.com/p/virtualdjscrobbler/wiki/Changelog"); // TODO:
+																											// url
+																											// in
+																											// property
 				URLConnection connection = changelogURL.openConnection();
 				connection.connect();
-				BufferedReader in = new BufferedReader(new InputStreamReader(
-						connection.getInputStream()));
+				BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 				String line;
 				String latestReleaseVersion = "";
 				while ((line = in.readLine()) != null) {
 					if (line.contains("currver=")) {
-						latestReleaseVersion = line.substring(line
-								.indexOf("currver") + "currver".length() + 1);
+						latestReleaseVersion = line.substring(line.indexOf("currver") + "currver".length() + 1);
 						break;
 					}
 				}
 				if (!VERSION.equals(latestReleaseVersion)) {
-					log.info("There is a new version available ("
-							+ latestReleaseVersion + ")");
-					displayMessageDialog(
-							"New version available!",
-							createEditorPane(generateNewVersionHTML(latestReleaseVersion)),
+					log.info("There is a new version available (" + latestReleaseVersion + ")");
+					displayMessageDialog("New version available!", createEditorPane(generateNewVersionHTML(latestReleaseVersion)),
 							JOptionPane.PLAIN_MESSAGE, getLogoImageIcon());
 				}
 				in.close();
@@ -224,8 +216,7 @@ public class VirtualDJScrobbler extends Thread {
 				exit(0);
 			}
 		});
-		final MenuItem vdjLocationItem = new MenuItem(
-				"Set VirtualDJ executable");
+		final MenuItem vdjLocationItem = new MenuItem("Set VirtualDJ executable");
 		vdjLocationItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -238,9 +229,7 @@ public class VirtualDJScrobbler extends Thread {
 				}
 			}
 		});
-		final CheckboxMenuItem popupItem = new CheckboxMenuItem(
-				"Show tray popups", preferences.getBoolean(POPUPS_PREFERENCE,
-						true));
+		final CheckboxMenuItem popupItem = new CheckboxMenuItem("Show tray popups", preferences.getBoolean(POPUPS_PREFERENCE, true));
 		popupItem.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -248,54 +237,42 @@ public class VirtualDJScrobbler extends Thread {
 				log.info("Popups are now: " + popupItem.getState());
 			}
 		});
-		final CheckboxMenuItem splashScreenItem = new CheckboxMenuItem(
-				"Show splash-screen", preferences.getBoolean(SPLASH_PREFERENCE,
-						true));
+		final CheckboxMenuItem splashScreenItem = new CheckboxMenuItem("Show splash-screen", preferences.getBoolean(SPLASH_PREFERENCE, true));
 		splashScreenItem.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				preferences.putBoolean(SPLASH_PREFERENCE,
-						splashScreenItem.getState());
+				preferences.putBoolean(SPLASH_PREFERENCE, splashScreenItem.getState());
 				log.info("Splash screen is now: " + splashScreenItem.getState());
 			}
 		});
-		final CheckboxMenuItem checkForUpdates = new CheckboxMenuItem(
-				"Check for updates on startup", preferences.getBoolean(
-						CHECK_FOR_UPDATE_PREFERENCE, false));
+		final CheckboxMenuItem checkForUpdates = new CheckboxMenuItem("Check for updates on startup", preferences.getBoolean(
+				CHECK_FOR_UPDATE_PREFERENCE, false));
 		checkForUpdates.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				preferences.putBoolean(CHECK_FOR_UPDATE_PREFERENCE,
-						checkForUpdates.getState());
-				log.info("Check for update is now: "
-						+ checkForUpdates.getState());
+				preferences.putBoolean(CHECK_FOR_UPDATE_PREFERENCE, checkForUpdates.getState());
+				log.info("Check for update is now: " + checkForUpdates.getState());
 			}
 		});
-		final CheckboxMenuItem autokillVDJScrobblerItem = new CheckboxMenuItem(
-				"Exit when VDJ is closed", preferences.getBoolean(
-						AUTOKILL_VDJSCROBBLER_PREFERENCE, false));
+		final CheckboxMenuItem autokillVDJScrobblerItem = new CheckboxMenuItem("Exit when VDJ is closed", preferences.getBoolean(
+				AUTOKILL_VDJSCROBBLER_PREFERENCE, false));
 		autokillVDJScrobblerItem.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				boolean autokill = autokillVDJScrobblerItem.getState();
-				preferences.putBoolean(AUTOKILL_VDJSCROBBLER_PREFERENCE,
-						autokill);
+				preferences.putBoolean(AUTOKILL_VDJSCROBBLER_PREFERENCE, autokill);
 				if (!autokill) {
 					if (autokillerThread != null && autokillerThread.isAlive()) {
 						autokillerThread.interrupt();
 					}
 				} else {
-					displayMessageDialog(
-							"Exit when VDJ is closed",
-							"Note: this will only have effect when VirtualDJ has been started by VirtualDJScrobbler",
-							JOptionPane.PLAIN_MESSAGE, null);
+					displayMessageDialog("Exit when VDJ is closed",
+							"Note: this will only have effect when VirtualDJ has been started by VirtualDJScrobbler", JOptionPane.PLAIN_MESSAGE, null);
 				}
 				log.info("Autokill VDJ is now: " + autokill);
 			}
 		});
-		final CheckboxMenuItem autostartVDJitem = new CheckboxMenuItem(
-				"Autostart VirtualDJ", preferences.getBoolean(
-						AUTOSTART_VDJ_PREFERENCE, false));
+		final CheckboxMenuItem autostartVDJitem = new CheckboxMenuItem("Autostart VirtualDJ", preferences.getBoolean(AUTOSTART_VDJ_PREFERENCE, false));
 		autostartVDJitem.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -348,20 +325,15 @@ public class VirtualDJScrobbler extends Thread {
 			public void actionPerformed(ActionEvent e) {
 				if (!dialogShowing) {
 					dialogShowing = true;
-					preferences.put(TRACKLIST_FILE_PREFERENCE,
-							showTracklistFileChooser(preferences.get(
-									TRACKLIST_FILE_PREFERENCE, "")));
-					log.debug("Path to tracklist file set to: "
-							+ preferences.get(TRACKLIST_FILE_PREFERENCE,
-									"Couldn't get preference"));
+					preferences.put(TRACKLIST_FILE_PREFERENCE, showTracklistFileChooser(preferences.get(TRACKLIST_FILE_PREFERENCE, "")));
+					log.debug("Path to tracklist file set to: " + preferences.get(TRACKLIST_FILE_PREFERENCE, "Couldn't get preference"));
 					dialogShowing = false;
 				} else {
 					mainFrame.toFront();
 				}
 			}
 		});
-		MenuItem refreshIntervalItem = new MenuItem(
-				"Set file checking interval");
+		MenuItem refreshIntervalItem = new MenuItem("Set file checking interval");
 		refreshIntervalItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -419,26 +391,19 @@ public class VirtualDJScrobbler extends Thread {
 		try {
 			systemTray.add(trayIcon);
 			if (preferences.getBoolean(POPUPS_PREFERENCE, true)) {
-				trayIcon.displayMessage(
-						NAME + " started",
-						NAME
-								+ " "
-								+ VERSION
-								+ " is now running in the background, right click the system tray icon for options.",
-						MessageType.INFO);
+				trayIcon.displayMessage(NAME + " started", NAME + " " + VERSION
+						+ " is now running in the background, right click the system tray icon for options.", MessageType.INFO);
 			}
 		} catch (AWTException e) {
 			log.error("Couldn't add tray icon", e);
 		}
 	}
 
-	private void displayMessageDialog(String title, Object message,
-			int messageType, ImageIcon imageIcon) {
+	private void displayMessageDialog(String title, Object message, int messageType, ImageIcon imageIcon) {
 		dialogShowing = true;
 		mainFrame.setVisible(true);
 		mainFrame.setTitle(title);
-		JOptionPane.showMessageDialog(mainFrame, message, NAME + " - " + title,
-				messageType, imageIcon);
+		JOptionPane.showMessageDialog(mainFrame, message, NAME + " - " + title, messageType, imageIcon);
 		mainFrame.setVisible(false);
 		dialogShowing = false;
 	}
@@ -449,10 +414,8 @@ public class VirtualDJScrobbler extends Thread {
 			File file = new File(vdjLocation);
 			if (file.exists()) {
 				try {
-					final Process vdjProcess = Runtime.getRuntime().exec(
-							vdjLocation);
-					if (preferences.getBoolean(
-							AUTOKILL_VDJSCROBBLER_PREFERENCE, false)) {
+					final Process vdjProcess = Runtime.getRuntime().exec(vdjLocation);
+					if (preferences.getBoolean(AUTOKILL_VDJSCROBBLER_PREFERENCE, false)) {
 						autokillerThread = new Thread() {
 							@Override
 							public void run() {
@@ -460,9 +423,7 @@ public class VirtualDJScrobbler extends Thread {
 									vdjProcess.waitFor();
 									exit(0);
 								} catch (InterruptedException e) {
-									log.error(
-											"Thread waiting for VirtualDJ interrupted",
-											e);
+									log.error("Thread waiting for VirtualDJ interrupted", e);
 								}
 							}
 						};
@@ -470,14 +431,12 @@ public class VirtualDJScrobbler extends Thread {
 					}
 				} catch (IOException e1) {
 					log.error("Could not autostart VirtualDJ", e1);
-					displayMessageDialog(
-							"Could not start VirtualDJ",
+					displayMessageDialog("Could not start VirtualDJ",
 							"VirtualDJ could not be autostarted, please check that the location of the executable is correct",
 							JOptionPane.ERROR_MESSAGE, null);
 				}
 			} else {
-				log.error("Could not autostart VirtualDJ, couldn't find file: "
-						+ file.getAbsolutePath());
+				log.error("Could not autostart VirtualDJ, couldn't find file: " + file.getAbsolutePath());
 			}
 		}
 	}
@@ -523,8 +482,7 @@ public class VirtualDJScrobbler extends Thread {
 							"Only one instance of "
 									+ NAME
 									+ " can be run at a time, please exit all other instances.\nIf no other instances are running try going to program directory and delete the \".lock\" file",
-							"Multiple instances disallowed",
-							JOptionPane.ERROR_MESSAGE);
+							"Multiple instances disallowed", JOptionPane.ERROR_MESSAGE);
 			System.exit(1);
 		}
 	}
@@ -546,12 +504,10 @@ public class VirtualDJScrobbler extends Thread {
 
 	private String checkOSAndPreAppendAppDir(String fileName) {
 		String os = System.getProperty("os.name");
-		if (os.toLowerCase().contains("win")
-				&& !os.toLowerCase().contains("xp")) {
+		if (os.toLowerCase().contains("win") && !os.toLowerCase().contains("xp")) {
 			String appDataFolder = System.getenv("appdata");
 			if (appDataFolder == null) {
-				fileName = System.getProperty("user.home")
-						+ "/VirtualDJScrobbler/" + fileName;
+				fileName = System.getProperty("user.home") + "/VirtualDJScrobbler/" + fileName;
 			} else {
 				fileName = appDataFolder + "/VirtualDJScrobbler/" + fileName;
 			}
@@ -605,9 +561,8 @@ public class VirtualDJScrobbler extends Thread {
 			String validationResult;
 			while (!(validationResult = validateTrackListFile(f)).equals("")) {
 				log.warn(validationResult);
-				displayMessageDialog("Invalid tracklist file", validationResult
-						+ ".\n\rPlease choose another file.",
-						JOptionPane.WARNING_MESSAGE, null);
+				displayMessageDialog("Invalid tracklist file", validationResult + ".\n\rPlease choose another file.", JOptionPane.WARNING_MESSAGE,
+						null);
 				filePath = showTracklistFileChooser(filePath);
 				if (filePath != null) {
 					f = new File(filePath);
@@ -619,10 +574,7 @@ public class VirtualDJScrobbler extends Thread {
 				br = new BufferedReader(new FileReader(f));
 				String line = br.readLine();
 				String dateString = "";
-				while (line != null
-						&& (line.startsWith("VirtualDJ History")
-								|| line.startsWith("-----------------") || line
-								.length() == 0)) {
+				while (line != null && (line.startsWith("VirtualDJ History") || line.startsWith("-----------------") || line.length() == 0)) {
 					if (line.startsWith("VirtualDJ History")) {
 						dateString = line.replace("VirtualDJ History - ", "");
 					}
@@ -630,11 +582,8 @@ public class VirtualDJScrobbler extends Thread {
 				}
 				String[] dateArray = dateString.split("/");
 				while (line != null) {
-					calendar.set(Integer.parseInt(dateArray[0]),
-							Integer.parseInt(dateArray[1]) - 1,
-							Integer.parseInt(dateArray[2]),
-							Integer.parseInt(line.substring(0, 2)),
-							Integer.parseInt(line.substring(3, 5)));
+					calendar.set(Integer.parseInt(dateArray[0]), Integer.parseInt(dateArray[1]) - 1, Integer.parseInt(dateArray[2]),
+							Integer.parseInt(line.substring(0, 2)), Integer.parseInt(line.substring(3, 5)));
 					if (calendar.after(lastTime)) {
 						lastTime.setTimeInMillis(calendar.getTimeInMillis());
 						log.debug("Added " + line.substring(7));
@@ -643,42 +592,29 @@ public class VirtualDJScrobbler extends Thread {
 							artist = "Unknown artist";
 							title = line.substring(line.indexOf(" : ") + 3);
 						} else {
-							artist = line.substring(line.indexOf(" : ") + 3,
-									line.indexOf(" - "));
+							artist = line.substring(line.indexOf(" : ") + 3, line.indexOf(" - "));
 							title = line.substring(line.indexOf(" - ") + 3);
 						}
 						scrobbleTrack();
 						try {
 							Thread.sleep(5000);
 						} catch (InterruptedException e) {
-							log.error(
-									"Sleep interrupted while waiting to submit now playing track",
-									e);
+							log.error("Sleep interrupted while waiting to submit now playing track", e);
 						}
-						LastFMTrack nowPlayingTrack = new LastFMTrack(artist,
-								title,
-								(int) (calendar.getTimeInMillis() / 1000), 240,
-								Source.P);
+						LastFMTrack nowPlayingTrack = new LastFMTrack(artist, title, (int) (calendar.getTimeInMillis() / 1000), 240, Source.P);
 						for (String user : users.keySet()) {
-							new NowPlayingThread(this, users.get(user),
-									nowPlayingTrack).start();
+							new NowPlayingThread(this, users.get(user), nowPlayingTrack).start();
 						}
 						trackToScrobble = nowPlayingTrack;
 					} else {
-						if (trackToScrobble != null
-								&& (int) (System.currentTimeMillis() / 1000)
-										- trackToScrobble.getStartTime() >= 240) {
+						if (trackToScrobble != null && (int) (System.currentTimeMillis() / 1000) - trackToScrobble.getStartTime() >= 240) {
 							scrobbleTrack();
 						}
 						line = br.readLine();
 					}
-					while (line != null
-							&& (line.startsWith("VirtualDJ History")
-									|| line.startsWith("-----------------") || line
-									.length() == 0)) {
+					while (line != null && (line.startsWith("VirtualDJ History") || line.startsWith("-----------------") || line.length() == 0)) {
 						if (line.startsWith("VirtualDJ History")) {
-							dateString = line.replace("VirtualDJ History - ",
-									"");
+							dateString = line.replace("VirtualDJ History - ", "");
 						}
 						line = br.readLine();
 					}
@@ -696,8 +632,7 @@ public class VirtualDJScrobbler extends Thread {
 				}
 			}
 			try {
-				Thread.sleep(preferences
-						.getInt(REFRESH_INTERVAL_PREFERENCE, 30) * 1000);
+				Thread.sleep(preferences.getInt(REFRESH_INTERVAL_PREFERENCE, 30) * 1000);
 			} catch (InterruptedException e) {
 				log.debug("Thread sleep interrupted", e);
 			}
@@ -712,19 +647,12 @@ public class VirtualDJScrobbler extends Thread {
 			file.delete();
 		}
 		try {
-			PrintStream printStream = new PrintStream(new FileOutputStream(
-					file, true));
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-					"yyMMDD HH:mm:ss");
-			printStream
-					.write("-------------------------------------------------------------\r\n"
-							.getBytes());
-			printStream.write(new String(simpleDateFormat.format(new Date(
-					System.currentTimeMillis()))
-					+ " - Starting new vdjscrobbler\r\n").getBytes());
-			printStream
-					.write("-------------------------------------------------------------\r\n"
-							.getBytes());
+			PrintStream printStream = new PrintStream(new FileOutputStream(file, true));
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyMMDD HH:mm:ss");
+			printStream.write("-------------------------------------------------------------\r\n".getBytes());
+			printStream.write(new String(simpleDateFormat.format(new Date(System.currentTimeMillis())) + " - Starting new vdjscrobbler\r\n")
+					.getBytes());
+			printStream.write("-------------------------------------------------------------\r\n".getBytes());
 			System.setErr(printStream);
 		} catch (FileNotFoundException e) {
 			log.error("Couldn't set error stream to file", e);
@@ -735,26 +663,20 @@ public class VirtualDJScrobbler extends Thread {
 
 	private void scrobbleTrack() {
 		if (trackToScrobble != null) {
-			int length = (int) (System.currentTimeMillis() / 1000 - trackToScrobble
-					.getStartTime());
+			int length = (int) (System.currentTimeMillis() / 1000 - trackToScrobble.getStartTime());
 			if (length >= 30) {
-				trackToScrobble
-						.setLength((int) (System.currentTimeMillis() / 1000 - trackToScrobble
-								.getStartTime()));
+				trackToScrobble.setLength((int) (System.currentTimeMillis() / 1000 - trackToScrobble.getStartTime()));
 				trackQueue.offer(trackToScrobble);
 				synchronized (trackQueue) {
 					trackQueue.notifyAll();
 				}
 				log.info("Putting " + trackToScrobble + " in the queue.");
 				if (preferences.getBoolean(POPUPS_PREFERENCE, true)) {
-					trayIcon.displayMessage("Scrobbling", "Putting "
-							+ trackToScrobble.getArtist() + " - "
-							+ trackToScrobble.getTitle() + " in the queue.",
-							MessageType.INFO);
+					trayIcon.displayMessage("Scrobbling", "Putting " + trackToScrobble.getArtist() + " - " + trackToScrobble.getTitle()
+							+ " in the queue.", MessageType.INFO);
 				}
 			} else {
-				log.info("Track: " + trackToScrobble + " to short (length: "
-						+ length + "s), skipping scrobbling");
+				log.info("Track: " + trackToScrobble + " to short (length: " + length + "s), skipping scrobbling");
 			}
 		}
 	}
@@ -762,8 +684,7 @@ public class VirtualDJScrobbler extends Thread {
 	private void createQueueReaderThreads() {
 		if (users != null) {
 			for (String user : users.keySet()) {
-				new QueueReaderThread(trackQueue, this, users.get(user))
-						.start();
+				new QueueReaderThread(trackQueue, this, users.get(user)).start();
 			}
 		}
 	}
@@ -774,8 +695,7 @@ public class VirtualDJScrobbler extends Thread {
 		fileName = checkOSAndPreAppendAppDir(fileName);
 		File queueFile = new File(fileName);
 		try {
-			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(
-					queueFile));
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(queueFile));
 			trackQueue = (LinkedList<LastFMTrack>) ois.readObject();
 			log.debug("Track queue loaded: " + trackQueue);
 			try {
@@ -799,22 +719,15 @@ public class VirtualDJScrobbler extends Thread {
 		String vdjLocation = preferences.get(VDJ_LOCATION, "");
 		do {
 			vdjLocation = showVJDFileChooser(vdjLocation);
-			if (vdjLocation != null
-					&& (!vdjLocation.endsWith("virtualdj.exe") || !new File(
-							vdjLocation).exists())) {
-				displayMessageDialog("Invalid VDJ location", "The path \""
-						+ vdjLocation
-						+ "\" is invalid, please choose another file.",
+			if (vdjLocation != null && (!vdjLocation.contains("virtualdj") || !new File(vdjLocation).exists())) {
+				displayMessageDialog("Invalid VDJ location", "The path \"" + vdjLocation + "\" is invalid, please choose another file.",
 						JOptionPane.WARNING_MESSAGE, null);
 			}
-		} while (vdjLocation != null
-				&& (!vdjLocation.endsWith("virtualdj.exe") || !new File(
-						vdjLocation).exists()));
+		} while (vdjLocation != null && (!vdjLocation.contains("virtualdj") || !new File(vdjLocation).exists()));
 		cancelled = vdjLocation == null;
 		if (!cancelled) {
 			preferences.put(VDJ_LOCATION, vdjLocation);
-			log.debug("Path to virtual dj executable file set to: "
-					+ preferences.get(VDJ_LOCATION, "Couldn't get preference"));
+			log.debug("Path to virtual dj executable file set to: " + preferences.get(VDJ_LOCATION, "Couldn't get preference"));
 		}
 		return cancelled;
 	}
@@ -827,12 +740,12 @@ public class VirtualDJScrobbler extends Thread {
 		fileChooser.setFileFilter(new FileFilter() {
 			@Override
 			public boolean accept(File f) {
-				return f.getName().equals("virtualdj.exe") || f.isDirectory();
+				return f.getName().contains("virtualdj") || f.isDirectory();
 			}
 
 			@Override
 			public String getDescription() {
-				return "virtualdj.exe";
+				return "VirtualDJ executable";
 			}
 		});
 		fileChooser.setMultiSelectionEnabled(false);
@@ -848,8 +761,7 @@ public class VirtualDJScrobbler extends Thread {
 			public void actionPerformed(ActionEvent e) {
 				int openDialog = fileChooser.showOpenDialog(null);
 				if (openDialog == JFileChooser.APPROVE_OPTION) {
-					textField.setText(fileChooser.getSelectedFile()
-							.getAbsolutePath());
+					textField.setText(fileChooser.getSelectedFile().getAbsolutePath());
 				}
 			}
 		});
@@ -860,9 +772,7 @@ public class VirtualDJScrobbler extends Thread {
 
 		mainFrame.setVisible(true);
 		mainFrame.setTitle(NAME + " - Set path to VirtualDJ executable");
-		int confirmDialog = JOptionPane.showConfirmDialog(mainFrame, panel,
-				"Set path to VirtualDJ executable",
-				JOptionPane.OK_CANCEL_OPTION);
+		int confirmDialog = JOptionPane.showConfirmDialog(mainFrame, panel, "Set path to VirtualDJ executable", JOptionPane.OK_CANCEL_OPTION);
 		mainFrame.setVisible(false);
 
 		if (confirmDialog == JOptionPane.CANCEL_OPTION) {
@@ -891,9 +801,7 @@ public class VirtualDJScrobbler extends Thread {
 		fileChooser.setMultiSelectionEnabled(false);
 		fileChooser.setFileHidingEnabled(true);
 		fileChooser.setAcceptAllFileFilterUsed(false);
-		fileChooser.setCurrentDirectory(new File(fileChooser
-				.getFileSystemView().getDefaultDirectory()
-				+ "/VirtualDJ/Tracklisting/"));
+		fileChooser.setCurrentDirectory(new File(fileChooser.getFileSystemView().getDefaultDirectory() + "/VirtualDJ/Tracklisting/"));
 
 		final JTextField textField = new JTextField(originalPath);
 		textField.setColumns(100);
@@ -907,12 +815,9 @@ public class VirtualDJScrobbler extends Thread {
 					selectedFile = fileChooser.getSelectedFile();
 					String validatationResult = validateTrackListFile(selectedFile);
 					if (validatationResult.equals("")) {
-						textField.setText(fileChooser.getSelectedFile()
-								.getAbsolutePath());
+						textField.setText(fileChooser.getSelectedFile().getAbsolutePath());
 					} else {
-						displayMessageDialog("Invalid tracklist file",
-								validatationResult
-										+ ".\n\rPlease choose another file.",
+						displayMessageDialog("Invalid tracklist file", validatationResult + ".\n\rPlease choose another file.",
 								JOptionPane.WARNING_MESSAGE, null);
 					}
 				}
@@ -923,8 +828,7 @@ public class VirtualDJScrobbler extends Thread {
 		panel.add(textField);
 		panel.add(button);
 
-		displayMessageDialog("Set path to tracklist file", panel,
-				JOptionPane.PLAIN_MESSAGE, null);
+		displayMessageDialog("Set path to tracklist file", panel, JOptionPane.PLAIN_MESSAGE, null);
 
 		return textField.getText();
 	}
@@ -934,59 +838,35 @@ public class VirtualDJScrobbler extends Thread {
 			return "File is null";
 		} else {
 			try {
-				BufferedReader bufferedReader = new BufferedReader(
-						new FileReader(selectedFile));
+				BufferedReader bufferedReader = new BufferedReader(new FileReader(selectedFile));
 				String[] firstThreeLines = new String[3];
 				for (int i = 0; i < 3; i++) {
 					firstThreeLines[i] = bufferedReader.readLine();
 				}
-				Pattern pattern = Pattern
-						.compile("VirtualDJ History - (19|20)\\d\\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])");
-				if (firstThreeLines[0] == null
-						|| firstThreeLines[0].length() != 0) {
-					log.debug("File: "
-							+ selectedFile.getAbsolutePath()
-							+ " is not a valid tracklist file since it doesn't start with an empty line");
-					return "File: "
-							+ selectedFile.getAbsolutePath()
-							+ " is not a valid tracklist file since it doesn't start with an empty line";
-				} else if (firstThreeLines[1] == null
-						|| !pattern.matcher(firstThreeLines[1]).matches()) {
-					log.debug("File: "
-							+ selectedFile.getAbsolutePath()
+				Pattern pattern = Pattern.compile("VirtualDJ History - (19|20)\\d\\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])");
+				if (firstThreeLines[0] == null || firstThreeLines[0].length() != 0) {
+					log.debug("File: " + selectedFile.getAbsolutePath() + " is not a valid tracklist file since it doesn't start with an empty line");
+					return "File: " + selectedFile.getAbsolutePath() + " is not a valid tracklist file since it doesn't start with an empty line";
+				} else if (firstThreeLines[1] == null || !pattern.matcher(firstThreeLines[1]).matches()) {
+					log.debug("File: " + selectedFile.getAbsolutePath()
 							+ " is not a valid tracklist file since the second line doesn't start with \"VirtualDJ History - YYYY/MM/DD\"");
-					return "File: "
-							+ selectedFile.getAbsolutePath()
+					return "File: " + selectedFile.getAbsolutePath()
 							+ " is not a valid tracklist file since the second line doesn't start with \"VirtualDJ History - YYYY/MM/DD\"";
-				} else if (firstThreeLines[2] == null
-						|| !firstThreeLines[2]
-								.equals("------------------------------")) {
-					log.debug("File: "
-							+ selectedFile.getAbsolutePath()
+				} else if (firstThreeLines[2] == null || !firstThreeLines[2].equals("------------------------------")) {
+					log.debug("File: " + selectedFile.getAbsolutePath()
 							+ " is not a valid tracklist file since the third line doesn't equal \"------------------------------\"");
-					return "File: "
-							+ selectedFile.getAbsolutePath()
+					return "File: " + selectedFile.getAbsolutePath()
 							+ " is not a valid tracklist file since the third line doesn't equal \"------------------------------\"";
 				} else {
-					log.debug("File: "
-							+ selectedFile.getAbsolutePath()
-							+ " appears to be a valid virtual dj tracklist file");
+					log.debug("File: " + selectedFile.getAbsolutePath() + " appears to be a valid virtual dj tracklist file");
 					return "";
 				}
 			} catch (FileNotFoundException e) {
-				log.debug("File: "
-						+ selectedFile.getAbsolutePath()
-						+ " is not a valid tracklist file since it doesn't exist");
-				return "File: "
-						+ selectedFile.getAbsolutePath()
-						+ " is not a valid tracklist file since it doesn't exist";
+				log.debug("File: " + selectedFile.getAbsolutePath() + " is not a valid tracklist file since it doesn't exist");
+				return "File: " + selectedFile.getAbsolutePath() + " is not a valid tracklist file since it doesn't exist";
 			} catch (IOException e) {
-				log.debug("File: "
-						+ selectedFile.getAbsolutePath()
-						+ " is not a valid tracklist file since it cannot be read");
-				return "File: "
-						+ selectedFile.getAbsolutePath()
-						+ " is not a valid tracklist file since it cannot be read";
+				log.debug("File: " + selectedFile.getAbsolutePath() + " is not a valid tracklist file since it cannot be read");
+				return "File: " + selectedFile.getAbsolutePath() + " is not a valid tracklist file since it cannot be read";
 			}
 		}
 	}
@@ -994,8 +874,7 @@ public class VirtualDJScrobbler extends Thread {
 	private void setUsersPreference(Map<String, LastFMUser> users) {
 		String value = "";
 		for (String key : users.keySet()) {
-			value += "<user>" + key + "=" + users.get(key).getMd5password()
-					+ "</user>";
+			value += "<user>" + key + "=" + users.get(key).getMd5password() + "</user>";
 		}
 		preferences.put(USERS_PREFERENCE, value);
 	}
@@ -1018,9 +897,7 @@ public class VirtualDJScrobbler extends Thread {
 	}
 
 	public void reportClientBanned() {
-		displayMessageDialog("Client Banned",
-				createEditorPane(generateBannedHTML()),
-				JOptionPane.ERROR_MESSAGE, null);
+		displayMessageDialog("Client Banned", createEditorPane(generateBannedHTML()), JOptionPane.ERROR_MESSAGE, null);
 		log.fatal("The client has been reported as banned");
 		System.exit(1);
 	}
@@ -1032,25 +909,17 @@ public class VirtualDJScrobbler extends Thread {
 			validationSuccess = false;
 			log.info("Bad auth reported on user validation");
 		} else {
-			displayMessageDialog(
-					"Bad Auth",
-					"The credentials of user: "
-							+ user.getUsername()
-							+ " is wrong, please re-add the user in the next dialog if you want to keep it.",
-					JOptionPane.ERROR_MESSAGE, null);
+			displayMessageDialog("Bad Auth", "The credentials of user: " + user.getUsername()
+					+ " is wrong, please re-add the user in the next dialog if you want to keep it.", JOptionPane.ERROR_MESSAGE, null);
 			users.remove(user.getUsername());
 			setUsersPreference(users);
-			log.warn("User "
-					+ user.getUsername()
-					+ " has wrong credentials has been removed and re-add popup will be shown.");
+			log.warn("User " + user.getUsername() + " has wrong credentials has been removed and re-add popup will be shown.");
 			addUser();
 		}
 	}
 
 	public void reportBadTime() {
-		displayMessageDialog(
-				"Bad Time",
-				"Your computer clock is to much of the actual time, please adjust and restart program",
+		displayMessageDialog("Bad Time", "Your computer clock is to much of the actual time, please adjust and restart program",
 				JOptionPane.ERROR_MESSAGE, null);
 		log.fatal("Users computer clock is to much of the actual time, exiting");
 		exit(1);
@@ -1058,9 +927,7 @@ public class VirtualDJScrobbler extends Thread {
 
 	private void exit(int status) {
 		int length;
-		if (trackToScrobble != null
-				&& (length = (int) (System.currentTimeMillis() / 1000)
-						- trackToScrobble.getStartTime()) >= 30) {
+		if (trackToScrobble != null && (length = (int) (System.currentTimeMillis() / 1000) - trackToScrobble.getStartTime()) >= 30) {
 			trackToScrobble.setLength(length);
 			trackQueue.offer(trackToScrobble);
 			synchronized (trackQueue) {
@@ -1069,8 +936,7 @@ public class VirtualDJScrobbler extends Thread {
 			try {
 				Thread.sleep(500); // give reader a little time to scrobble
 			} catch (InterruptedException e) {
-				log.error("Waiting for last track to be submited interrupted",
-						e);
+				log.error("Waiting for last track to be submited interrupted", e);
 			}
 		}
 		storeQueue();
@@ -1114,53 +980,30 @@ public class VirtualDJScrobbler extends Thread {
 		while (!validated && confirmed != JOptionPane.CANCEL_OPTION) {
 			mainFrame.setVisible(true);
 			mainFrame.setTitle(NAME + " - Add user");
-			confirmed = JOptionPane.showConfirmDialog(mainFrame, addUserPanel,
-					"Add user", JOptionPane.OK_CANCEL_OPTION,
-					JOptionPane.PLAIN_MESSAGE);
+			confirmed = JOptionPane.showConfirmDialog(mainFrame, addUserPanel, "Add user", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 			mainFrame.setVisible(false);
-			if (confirmed == JOptionPane.OK_OPTION
-					&& userName.getText().length() > 0
-					&& password.getPassword().length > 0) {
+			if (confirmed == JOptionPane.OK_OPTION && userName.getText().length() > 0 && password.getPassword().length > 0) {
 				try {
-					LastFMUser user = new LastFMUser(userName.getText(),
-							md5(new String(password.getPassword())),
-							users.size() * 250);
+					LastFMUser user = new LastFMUser(userName.getText(), md5(new String(password.getPassword())), users.size() * 250);
 					if (users.get(user.getUsername()) != null) {
-						displayMessageDialog("Didn't add user",
-								"User: " + user.getUsername()
-										+ " already added",
-								JOptionPane.WARNING_MESSAGE, null);
-						log.warn("User: " + user.getUsername()
-								+ " already added");
+						displayMessageDialog("Didn't add user", "User: " + user.getUsername() + " already added", JOptionPane.WARNING_MESSAGE, null);
+						log.warn("User: " + user.getUsername() + " already added");
 						validated = true;
 					} else if (users.size() == 50) {
-						displayMessageDialog(
-								"Didn't add user",
-								"User: "
-										+ user.getUsername()
-										+ " couldn't be added, maximum allowed number of users is 50.",
-								JOptionPane.WARNING_MESSAGE, null);
-						log.warn("User: "
-								+ user.getUsername()
-								+ " couldn't be added, maximum allowed number of users is 50.");
+						displayMessageDialog("Didn't add user", "User: " + user.getUsername()
+								+ " couldn't be added, maximum allowed number of users is 50.", JOptionPane.WARNING_MESSAGE, null);
+						log.warn("User: " + user.getUsername() + " couldn't be added, maximum allowed number of users is 50.");
 						validated = true;
 					} else {
 						validated = validateUser(user);
 						if (validated) {
 							users.put(userName.getText(), user);
-							new QueueReaderThread(trackQueue, this, user)
-									.start();
+							new QueueReaderThread(trackQueue, this, user).start();
 							log.info("Adding user: " + userName.getText());
-							displayMessageDialog("User added",
-									"User: " + user.getUsername()
-											+ " successfully added",
-									JOptionPane.PLAIN_MESSAGE, null);
+							displayMessageDialog("User added", "User: " + user.getUsername() + " successfully added", JOptionPane.PLAIN_MESSAGE, null);
 							setUsersPreference(users);
 						} else {
-							displayMessageDialog(
-									"Bad auth",
-									"Bad username/password, please change and try again",
-									JOptionPane.WARNING_MESSAGE, null);
+							displayMessageDialog("Bad auth", "Bad username/password, please change and try again", JOptionPane.WARNING_MESSAGE, null);
 						}
 					}
 				} catch (NoSuchAlgorithmException e1) {
@@ -1179,14 +1022,12 @@ public class VirtualDJScrobbler extends Thread {
 	private boolean validateUser(LastFMUser user) {
 		isValidating = true;
 		validationSuccess = false;
-		ValidateUserThread validateUserThread = new ValidateUserThread(this,
-				user);
+		ValidateUserThread validateUserThread = new ValidateUserThread(this, user);
 		validateUserThread.start();
 		JProgressBar progressBar = new JProgressBar();
 		progressBar.setIndeterminate(true);
-		JOptionPane optionPane = new JOptionPane(progressBar,
-				JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE,
-				null, new Object[] { "Cancel" }, null);
+		JOptionPane optionPane = new JOptionPane(progressBar, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null,
+				new Object[] { "Cancel" }, null);
 		validationDialog = optionPane.createDialog("Validating user");
 		if (isValidating) {
 			validationDialog.setVisible(true);
@@ -1218,10 +1059,8 @@ public class VirtualDJScrobbler extends Thread {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					mainFrame.setTitle(NAME + " - Confirm removal");
-					int showConfirmDialog = JOptionPane.showConfirmDialog(
-							mainFrame, "Are you sure you want to remove: "
-									+ username, "Confirm removal",
-							JOptionPane.YES_NO_OPTION);
+					int showConfirmDialog = JOptionPane.showConfirmDialog(mainFrame, "Are you sure you want to remove: " + username,
+							"Confirm removal", JOptionPane.YES_NO_OPTION);
 					mainFrame.setTitle(NAME + " - Remove users");
 					if (showConfirmDialog == JOptionPane.YES_OPTION) {
 						users.remove(username);
@@ -1238,8 +1077,7 @@ public class VirtualDJScrobbler extends Thread {
 			removeUsersPanel.add(Box.createVerticalStrut(5), c);
 			c.gridy++;
 		}
-		displayMessageDialog("Remove users", removeUsersPanel,
-				JOptionPane.PLAIN_MESSAGE, null);
+		displayMessageDialog("Remove users", removeUsersPanel, JOptionPane.PLAIN_MESSAGE, null);
 		setUsersPreference(users);
 	}
 
@@ -1258,8 +1096,7 @@ public class VirtualDJScrobbler extends Thread {
 		slider.setPaintTrack(true);
 		slider.setSnapToTicks(true);
 		slider.setMinimumSize(new Dimension(300, 20));
-		displayMessageDialog("Set file checking interval", slider,
-				JOptionPane.PLAIN_MESSAGE, null);
+		displayMessageDialog("Set file checking interval", slider, JOptionPane.PLAIN_MESSAGE, null);
 		preferences.putInt(REFRESH_INTERVAL_PREFERENCE, slider.getValue());
 		log.debug("Refresh interval now set to: " + slider.getValue());
 	}
@@ -1279,8 +1116,7 @@ public class VirtualDJScrobbler extends Thread {
 		html.append("<body>");
 		html.append("<p style=\"font-family:tahoma;font-size:11\">");
 		html.append("This client has sadly been banned, please send email to ");
-		html.append("<a href=mailto:vdjscrobbler@gmail.com?subject=Client%20(version:%20"
-				+ VERSION + ")%20banned>vdjscrobbler@gmail.com</a>");
+		html.append("<a href=mailto:vdjscrobbler@gmail.com?subject=Client%20(version:%20" + VERSION + ")%20banned>vdjscrobbler@gmail.com</a>");
 		html.append("</p>");
 		html.append("</body>");
 		html.append("</html>");
@@ -1304,8 +1140,8 @@ public class VirtualDJScrobbler extends Thread {
 		URL donateUrl = ClassLoader.getSystemResource("donate.gif");
 		html.append("<br/><br/><a href=https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NRMM5NEBFQPW&lc=SE&item_name=VirtualDJScrobbler&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted><img alt=\"Donate\" src="
 				+ donateUrl + " border=\"0\" align=\"middle\"/></a>");
-		html.append("<br/><br/><a href=http://www.lastfm.com><img alt=\"Powered by Audioscrobbler\" src="
-				+ poweredByUrl + " border=\"0\" align=\"middle\"/></a>");
+		html.append("<br/><br/><a href=http://www.lastfm.com><img alt=\"Powered by Audioscrobbler\" src=" + poweredByUrl
+				+ " border=\"0\" align=\"middle\"/></a>");
 		html.append("</p>");
 		html.append("</body>");
 		html.append("</html>");
@@ -1318,10 +1154,9 @@ public class VirtualDJScrobbler extends Thread {
 		html.append("<html>");
 		html.append("<body>");
 		html.append("<p style=\"font-family:tahoma;font-size:11\">");
-		html.append("Version " + newVersion
-				+ " is now available for download: ");
-		html.append("<a href=http://virtualdjscrobbler.googlecode.com/files/VirtualDJScrobbler-"
-				+ newVersion + ".zip>VirtualDJScrobbler " + newVersion + "</a>");
+		html.append("Version " + newVersion + " is now available for download: ");
+		html.append("<a href=http://virtualdjscrobbler.googlecode.com/files/VirtualDJScrobbler-" + newVersion + ".zip>VirtualDJScrobbler "
+				+ newVersion + "</a>");
 		html.append("</p>");
 		html.append("</body>");
 		html.append("</html>");
@@ -1331,8 +1166,7 @@ public class VirtualDJScrobbler extends Thread {
 
 	private void about(final JEditorPane editorPane) {
 		log.debug("Showing about screen");
-		displayMessageDialog("About", editorPane, JOptionPane.PLAIN_MESSAGE,
-				getLogoImageIcon());
+		displayMessageDialog("About", editorPane, JOptionPane.PLAIN_MESSAGE, getLogoImageIcon());
 	}
 
 	private ImageIcon getLogoImageIcon() {
@@ -1364,12 +1198,10 @@ public class VirtualDJScrobbler extends Thread {
 			if (e.getEventType() == EventType.ACTIVATED) {
 				boolean desktopSupported = Desktop.isDesktopSupported();
 				if (desktopSupported) {
-					if (e.getDescription().startsWith(
-							"mailto:vdjscrobbler@gmail.com")) {
+					if (e.getDescription().startsWith("mailto:vdjscrobbler@gmail.com")) {
 						try {
 							log.debug("Starting mail program");
-							Desktop.getDesktop().mail(
-									new URI(e.getDescription()));
+							Desktop.getDesktop().mail(new URI(e.getDescription()));
 						} catch (IOException e1) {
 							log.error("Could not start mail program", e1);
 						} catch (URISyntaxException e1) {
