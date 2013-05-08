@@ -29,18 +29,15 @@ import se.tingne.vdjscrobbler.data.LastFMTrack;
 import se.tingne.vdjscrobbler.data.LastFMUser;
 import se.tingne.vdjscrobbler.workerthreads.SubmissionThread;
 
-
 /** @author Magnus Tingne */
 public class QueueReaderThread extends Thread {
-	private static final Logger log = org.apache.log4j.Logger
-			.getLogger(QueueReaderThread.class);
+	private static final Logger log = org.apache.log4j.Logger.getLogger(QueueReaderThread.class);
 
 	private final Queue<LastFMTrack> trackQueue;
 	private final VirtualDJScrobbler virtualDJScrobbler;
 	private final LastFMUser user;
 
-	public QueueReaderThread(Queue<LastFMTrack> trackQueue,
-			VirtualDJScrobbler virtualDJScrobbler, LastFMUser user) {
+	public QueueReaderThread(Queue<LastFMTrack> trackQueue, VirtualDJScrobbler virtualDJScrobbler, LastFMUser user) {
 		this.trackQueue = trackQueue;
 		this.virtualDJScrobbler = virtualDJScrobbler;
 		this.user = user;
@@ -57,19 +54,15 @@ public class QueueReaderThread extends Thread {
 						trackQueue.wait();
 					}
 				}
-				int toIndex = trackQueue.size();
+				int toIndex = trackQueue.size() - 1;
 				if (toIndex > 50) {
 					toIndex = 50;
 				}
-				List<LastFMTrack> tracksToSubmit = new ArrayList<LastFMTrack>(
-						trackQueue).subList(0, toIndex);
-				SubmissionThread submissionThread = new SubmissionThread(
-						virtualDJScrobbler, user, tracksToSubmit);
-				log.debug("Starting thread that will submit tracks: "
-						+ tracksToSubmit);
+				List<LastFMTrack> tracksToSubmit = new ArrayList<LastFMTrack>(trackQueue).subList(0, toIndex);
+				SubmissionThread submissionThread = new SubmissionThread(virtualDJScrobbler, user, tracksToSubmit);
+				log.debug("Starting thread that will submit tracks: " + tracksToSubmit);
 				submissionThread.start();
-				while (submissionThread.isAlive()
-						&& !submissionThread.isSubmitted()) {
+				while (submissionThread.isAlive() && !submissionThread.isSubmitted()) {
 					log.debug("Waiting for tracks to be submitted");
 					synchronized (tracksToSubmit) {
 						tracksToSubmit.wait();
@@ -78,8 +71,7 @@ public class QueueReaderThread extends Thread {
 				log.debug("Tracks submitted, removing tracks from queue");
 				trackQueue.removeAll(tracksToSubmit);
 			} catch (InterruptedException e) {
-				log
-						.warn("Thread was interrupted, continuing checking the queue");
+				log.warn("Thread was interrupted, continuing checking the queue");
 			}
 		}
 	}
