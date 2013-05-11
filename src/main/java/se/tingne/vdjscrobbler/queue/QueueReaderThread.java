@@ -54,11 +54,16 @@ public class QueueReaderThread extends Thread {
 						trackQueue.wait();
 					}
 				}
-				int toIndex = trackQueue.size() - 1;
+				List<LastFMTrack> tracksToSubmit = new ArrayList<LastFMTrack>(trackQueue);
+				int toIndex = tracksToSubmit.size();
 				if (toIndex > 50) {
 					toIndex = 50;
 				}
-				List<LastFMTrack> tracksToSubmit = new ArrayList<LastFMTrack>(trackQueue).subList(0, toIndex);
+				tracksToSubmit = tracksToSubmit.subList(0, toIndex);
+				if (tracksToSubmit.isEmpty()) {
+					log.warn("Queue is empty when trying to submit, continuing");
+					continue;
+				}
 				SubmissionThread submissionThread = new SubmissionThread(virtualDJScrobbler, user, tracksToSubmit);
 				log.debug("Starting thread that will submit tracks: " + tracksToSubmit);
 				submissionThread.start();

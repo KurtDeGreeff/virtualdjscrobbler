@@ -115,7 +115,7 @@ public class VirtualDJScrobbler extends Thread {
 	private static final String VERSION = "0.2.1";
 
 	private static final String USERS_PREFERENCE = "USERS";
-	private static final String TRACKLIST_FILE_PREFERENCE = "TRACKLIST";
+	public static final String TRACKLIST_FILE_PREFERENCE = "TRACKLIST";
 	private static final String REFRESH_INTERVAL_PREFERENCE = "REFRESH";
 	private static final String POPUPS_PREFERENCE = "POPUPS";
 	private static final String SPLASH_PREFERENCE = "SPLASH";
@@ -141,6 +141,8 @@ public class VirtualDJScrobbler extends Thread {
 	private FileLock lock;
 	private boolean isValidating;
 	private Thread autokillerThread;
+	private TracklistFileWatcher tracklistFileWatcher;
+	private FileOutputStream lockFileOutputStream;
 
 	public VirtualDJScrobbler() {
 		updateLog4jFilename();
@@ -169,15 +171,23 @@ public class VirtualDJScrobbler extends Thread {
 		createQueueReaderThreads();
 		setupTray();
 		checkForUpdate();
+		setupFileWatcher();
+	}
+
+	private void setupFileWatcher() {
+		try {
+			tracklistFileWatcher = TracklistFileWatcher.getInstance(this);
+			tracklistFileWatcher.processEvents();
+		} catch (IOException e) {
+			log.error("Something whent wrong when watching file", e);
+		}
 	}
 
 	private void checkForUpdate() {
 		if (preferences.getBoolean(CHECK_FOR_UPDATE_PREFERENCE, false)) {
 			try {
-				URL changelogURL = new URL("http://code.google.com/p/virtualdjscrobbler/wiki/Changelog"); // TODO:
-																											// url
-																											// in
-																											// property
+				// TODO: url in property
+				URL changelogURL = new URL("http://code.google.com/p/virtualdjscrobbler/wiki/Changelog");
 				URLConnection connection = changelogURL.openConnection();
 				connection.connect();
 				BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -327,6 +337,11 @@ public class VirtualDJScrobbler extends Thread {
 					dialogShowing = true;
 					preferences.put(TRACKLIST_FILE_PREFERENCE, showTracklistFileChooser(preferences.get(TRACKLIST_FILE_PREFERENCE, "")));
 					log.debug("Path to tracklist file set to: " + preferences.get(TRACKLIST_FILE_PREFERENCE, "Couldn't get preference"));
+					try {
+						tracklistFileWatcher.updateTrackListPath();
+					} catch (IOException ex) {
+						log.error("Something went wrong when updating file watcher", ex);
+					}
 					dialogShowing = false;
 				} else {
 					mainFrame.toFront();
@@ -498,7 +513,8 @@ public class VirtualDJScrobbler extends Thread {
 				return false;
 			}
 		}
-		lock = new FileOutputStream(lockFile).getChannel().tryLock();
+		lockFileOutputStream = new FileOutputStream(lockFile);
+		lock = lockFileOutputStream.getChannel().tryLock();
 		return lock != null;
 	}
 
@@ -515,13 +531,13 @@ public class VirtualDJScrobbler extends Thread {
 		return fileName;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private void updateLog4jFilename() {
 		// because some operating systems are stupid (ahem Windows) and
 		// won't allow us to write to our own folder we need to set the
 		// log4j fileappender to the appdata folder and this doesn't
 		// seem to be possible in the config file so I'm doing it
 		// programatically instead...
-		@SuppressWarnings("unchecked")
 		Enumeration allAppenders = Logger.getRootLogger().getAllAppenders();
 		while (allAppenders.hasMoreElements()) {
 			Object object = allAppenders.nextElement();
@@ -540,101 +556,6 @@ public class VirtualDJScrobbler extends Thread {
 				if (file.exists()) {
 					file.delete();
 				}
-			}
-		}
-	}
-
-	@Override
-	public void run() {
-		Calendar calendar = Calendar.getInstance(Locale.getDefault());
-		// ArrayList<TrackInfo> tracks = new ArrayList<TrackInfo>();
-		// ArrayList<TrackInfo> latestTracks = new ArrayList<TrackInfo>();
-		BufferedReader br = null;
-		trackToScrobble = null;
-
-		while (true) {
-			// log.debug("Reading");
-			// latestTracks.addAll(tracks);
-			// tracks = new ArrayList<TrackInfo>();
-			String filePath = preferences.get(TRACKLIST_FILE_PREFERENCE, "");
-			File f = new File(filePath);
-			String validationResult;
-			while (!(validationResult = validateTrackListFile(f)).equals("")) {
-				log.warn(validationResult);
-				displayMessageDialog("Invalid tracklist file", validationResult + ".\n\rPlease choose another file.", JOptionPane.WARNING_MESSAGE,
-						null);
-				filePath = showTracklistFileChooser(filePath);
-				if (filePath != null) {
-					f = new File(filePath);
-				}
-			}
-			preferences.put(TRACKLIST_FILE_PREFERENCE, filePath);
-
-			try {
-				br = new BufferedReader(new FileReader(f));
-				String line = br.readLine();
-				String dateString = "";
-				while (line != null && (line.startsWith("VirtualDJ History") || line.startsWith("-----------------") || line.length() == 0)) {
-					if (line.startsWith("VirtualDJ History")) {
-						dateString = line.replace("VirtualDJ History - ", "");
-					}
-					line = br.readLine();
-				}
-				String[] dateArray = dateString.split("/");
-				while (line != null) {
-					calendar.set(Integer.parseInt(dateArray[0]), Integer.parseInt(dateArray[1]) - 1, Integer.parseInt(dateArray[2]),
-							Integer.parseInt(line.substring(0, 2)), Integer.parseInt(line.substring(3, 5)));
-					if (calendar.after(lastTime)) {
-						lastTime.setTimeInMillis(calendar.getTimeInMillis());
-						log.debug("Added " + line.substring(7));
-						String artist, title;
-						if (line.indexOf(" - ") == -1) {
-							artist = "Unknown artist";
-							title = line.substring(line.indexOf(" : ") + 3);
-						} else {
-							artist = line.substring(line.indexOf(" : ") + 3, line.indexOf(" - "));
-							title = line.substring(line.indexOf(" - ") + 3);
-						}
-						scrobbleTrack();
-						try {
-							Thread.sleep(5000);
-						} catch (InterruptedException e) {
-							log.error("Sleep interrupted while waiting to submit now playing track", e);
-						}
-						LastFMTrack nowPlayingTrack = new LastFMTrack(artist, title, (int) (calendar.getTimeInMillis() / 1000), 240, Source.P);
-						for (String user : users.keySet()) {
-							new NowPlayingThread(this, users.get(user), nowPlayingTrack).start();
-						}
-						trackToScrobble = nowPlayingTrack;
-					} else {
-						if (trackToScrobble != null && (int) (System.currentTimeMillis() / 1000) - trackToScrobble.getStartTime() >= 240) {
-							scrobbleTrack();
-						}
-						line = br.readLine();
-					}
-					while (line != null && (line.startsWith("VirtualDJ History") || line.startsWith("-----------------") || line.length() == 0)) {
-						if (line.startsWith("VirtualDJ History")) {
-							dateString = line.replace("VirtualDJ History - ", "");
-						}
-						line = br.readLine();
-					}
-					dateArray = dateString.split("/");
-				}
-			} catch (FileNotFoundException e) {
-				log.error("Tracklist file doesn't exist", e);
-			} catch (IOException e) {
-				log.error("Tracklist file could not be read", e);
-			} finally {
-				try {
-					br.close();
-				} catch (IOException e) {
-					log.debug("Couldn't close reader", e);
-				}
-			}
-			try {
-				Thread.sleep(preferences.getInt(REFRESH_INTERVAL_PREFERENCE, 30) * 1000);
-			} catch (InterruptedException e) {
-				log.debug("Thread sleep interrupted", e);
 			}
 		}
 	}
@@ -666,14 +587,14 @@ public class VirtualDJScrobbler extends Thread {
 			int length = (int) (System.currentTimeMillis() / 1000 - trackToScrobble.getStartTime());
 			if (length >= 30) {
 				trackToScrobble.setLength((int) (System.currentTimeMillis() / 1000 - trackToScrobble.getStartTime()));
-				trackQueue.offer(trackToScrobble);
-				synchronized (trackQueue) {
-					trackQueue.notifyAll();
-				}
 				log.info("Putting " + trackToScrobble + " in the queue.");
 				if (preferences.getBoolean(POPUPS_PREFERENCE, true)) {
 					trayIcon.displayMessage("Scrobbling", "Putting " + trackToScrobble.getArtist() + " - " + trackToScrobble.getTitle()
 							+ " in the queue.", MessageType.INFO);
+				}
+				trackQueue.offer(trackToScrobble);
+				synchronized (trackQueue) {
+					trackQueue.notifyAll();
 				}
 			} else {
 				log.info("Track: " + trackToScrobble + " to short (length: " + length + "s), skipping scrobbling");
@@ -718,7 +639,7 @@ public class VirtualDJScrobbler extends Thread {
 		boolean cancelled;
 		String vdjLocation = preferences.get(VDJ_LOCATION, "");
 		do {
-			vdjLocation = showVJDFileChooser(vdjLocation);
+			vdjLocation = showVDJFileChooser(vdjLocation);
 			if (vdjLocation != null && (!vdjLocation.contains("virtualdj") || !new File(vdjLocation).exists())) {
 				displayMessageDialog("Invalid VDJ location", "The path \"" + vdjLocation + "\" is invalid, please choose another file.",
 						JOptionPane.WARNING_MESSAGE, null);
@@ -732,7 +653,7 @@ public class VirtualDJScrobbler extends Thread {
 		return cancelled;
 	}
 
-	protected String showVJDFileChooser(String originalPath) {
+	protected String showVDJFileChooser(String originalPath) {
 		final JFileChooser fileChooser = new JFileChooser();
 		// FileSystemView fw = fileChooser.getFileSystemView();
 		// fw.getDefaultDirectory();
@@ -814,7 +735,7 @@ public class VirtualDJScrobbler extends Thread {
 				if (openDialog == JFileChooser.APPROVE_OPTION) {
 					selectedFile = fileChooser.getSelectedFile();
 					String validatationResult = validateTrackListFile(selectedFile);
-					if (validatationResult.equals("")) {
+					if ("".equals(validatationResult)) {
 						textField.setText(fileChooser.getSelectedFile().getAbsolutePath());
 					} else {
 						displayMessageDialog("Invalid tracklist file", validatationResult + ".\n\rPlease choose another file.",
@@ -837,8 +758,9 @@ public class VirtualDJScrobbler extends Thread {
 		if (selectedFile == null) {
 			return "File is null";
 		} else {
+			BufferedReader bufferedReader = null;
 			try {
-				BufferedReader bufferedReader = new BufferedReader(new FileReader(selectedFile));
+				bufferedReader = new BufferedReader(new FileReader(selectedFile));
 				String[] firstThreeLines = new String[3];
 				for (int i = 0; i < 3; i++) {
 					firstThreeLines[i] = bufferedReader.readLine();
@@ -867,6 +789,12 @@ public class VirtualDJScrobbler extends Thread {
 			} catch (IOException e) {
 				log.debug("File: " + selectedFile.getAbsolutePath() + " is not a valid tracklist file since it cannot be read");
 				return "File: " + selectedFile.getAbsolutePath() + " is not a valid tracklist file since it cannot be read";
+			} finally {
+				try {
+					bufferedReader.close();
+				} catch (IOException e) {
+					log.debug("Couldn't close reader", e);
+				}
 			}
 		}
 	}
@@ -942,6 +870,11 @@ public class VirtualDJScrobbler extends Thread {
 		storeQueue();
 		try {
 			lock.release();
+			try {
+				lockFileOutputStream.close();
+			} catch (IOException e) {
+				log.error("Couldn't close file output stream when obtaining lock", e);
+			}
 		} catch (IOException e) {
 			log.error("Error when releasing lock", e);
 		}
@@ -1188,8 +1121,7 @@ public class VirtualDJScrobbler extends Thread {
 		} catch (UnsupportedLookAndFeelException e) {
 			log.warn("Could not set system look and feel", e);
 		}
-		VirtualDJScrobbler vdjs = new VirtualDJScrobbler();
-		vdjs.start();
+		new VirtualDJScrobbler();
 	}
 
 	private class VDJHyperLinkListener implements HyperlinkListener {
@@ -1222,6 +1154,61 @@ public class VirtualDJScrobbler extends Thread {
 				}
 			}
 		}
+	}
 
+	public void handleNewLineInTrackListFile(String newLine, String[] dateArray) {
+		Calendar calendar = Calendar.getInstance(Locale.getDefault());
+		calendar.set(Integer.parseInt(dateArray[0]), Integer.parseInt(dateArray[1]) - 1, Integer.parseInt(dateArray[2]),
+				Integer.parseInt(newLine.substring(0, 2)), Integer.parseInt(newLine.substring(3, 5)));
+		if (calendar.after(lastTime)) {
+			lastTime.setTimeInMillis(calendar.getTimeInMillis());
+			log.debug("Added " + newLine.substring(7));
+			String artist, title;
+			if (newLine.indexOf(" - ") == -1) {
+				artist = "Unknown artist";
+				title = newLine.substring(newLine.indexOf(" : ") + 3);
+			} else {
+				artist = newLine.substring(newLine.indexOf(" : ") + 3, newLine.indexOf(" - "));
+				title = newLine.substring(newLine.indexOf(" - ") + 3);
+			}
+			scrobbleTrack();
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				log.error("Sleep interrupted while waiting to submit now playing track", e);
+			}
+			LastFMTrack nowPlayingTrack = new LastFMTrack(artist, title, (int) (calendar.getTimeInMillis() / 1000), 240, Source.P);
+			for (String user : users.keySet()) {
+				new NowPlayingThread(this, users.get(user), nowPlayingTrack).start();
+			}
+			trackToScrobble = nowPlayingTrack;
+			new SixMinChecker(trackToScrobble, calendar.getTimeInMillis()).start();
+		}
+	}
+
+	private class SixMinChecker extends Thread {
+
+		private LastFMTrack trackToCheck;
+		private long lastTimeInMillis;
+
+		public SixMinChecker(LastFMTrack trackToCheck, long lastTimeInMillis) {
+			this.trackToCheck = trackToCheck;
+			this.lastTimeInMillis = lastTimeInMillis;
+		}
+
+		@Override
+		public void run() {
+			try {
+				Thread.sleep(240000);
+				if (trackToCheck.equals(trackToScrobble)) {
+					lastTime.setTimeInMillis(lastTimeInMillis);
+					log.debug("Song " + trackToScrobble.getArtist() + " - " + trackToScrobble.getTitle() + " played for 6min, forcing scrobble");
+					scrobbleTrack();
+					trackToScrobble = null;
+				}
+			} catch (InterruptedException e) {
+				log.debug("Thread sleep interrupted", e);
+			}
+		}
 	}
 }
