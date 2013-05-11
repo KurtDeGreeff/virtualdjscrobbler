@@ -112,7 +112,7 @@ import se.tingne.vdjscrobbler.workerthreads.ValidateUserThread;
  */
 public class VirtualDJScrobbler extends Thread {
 	private static final String NAME = "VirtualDJScrobbler";
-	private static final String VERSION = "0.2.1";
+	private static final String VERSION = "0.3";
 
 	private static final String USERS_PREFERENCE = "USERS";
 	public static final String TRACKLIST_FILE_PREFERENCE = "TRACKLIST";
@@ -170,7 +170,9 @@ public class VirtualDJScrobbler extends Thread {
 		users = getUsersPreference();
 		createQueueReaderThreads();
 		setupTray();
-		checkForUpdate();
+		if (preferences.getBoolean(CHECK_FOR_UPDATE_PREFERENCE, false)) {
+			checkForUpdate();
+		}
 		setupFileWatcher();
 	}
 
@@ -184,30 +186,28 @@ public class VirtualDJScrobbler extends Thread {
 	}
 
 	private void checkForUpdate() {
-		if (preferences.getBoolean(CHECK_FOR_UPDATE_PREFERENCE, false)) {
-			try {
-				// TODO: url in property
-				URL changelogURL = new URL("http://code.google.com/p/virtualdjscrobbler/wiki/Changelog");
-				URLConnection connection = changelogURL.openConnection();
-				connection.connect();
-				BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-				String line;
-				String latestReleaseVersion = "";
-				while ((line = in.readLine()) != null) {
-					if (line.contains("currver=")) {
-						latestReleaseVersion = line.substring(line.indexOf("currver") + "currver".length() + 1);
-						break;
-					}
+		try {
+			// TODO: url in property
+			URL changelogURL = new URL("http://code.google.com/p/virtualdjscrobbler/wiki/Changelog");
+			URLConnection connection = changelogURL.openConnection();
+			connection.connect();
+			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			String line;
+			String latestReleaseVersion = "";
+			while ((line = in.readLine()) != null) {
+				if (line.contains("currver=")) {
+					latestReleaseVersion = line.substring(line.indexOf("currver") + "currver".length() + 1);
+					break;
 				}
-				if (!VERSION.equals(latestReleaseVersion)) {
-					log.info("There is a new version available (" + latestReleaseVersion + ")");
-					displayMessageDialog("New version available!", createEditorPane(generateNewVersionHTML(latestReleaseVersion)),
-							JOptionPane.PLAIN_MESSAGE, getLogoImageIcon());
-				}
-				in.close();
-			} catch (Exception e) {
-				log.error("Could not check for update", e);
 			}
+			if (!VERSION.equals(latestReleaseVersion)) {
+				log.info("There is a new version available (" + latestReleaseVersion + ")");
+				displayMessageDialog("New version available!", createEditorPane(generateNewVersionHTML(latestReleaseVersion)),
+						JOptionPane.PLAIN_MESSAGE, getLogoImageIcon());
+			}
+			in.close();
+		} catch (Exception e) {
+			log.error("Could not check for update", e);
 		}
 	}
 
@@ -262,6 +262,15 @@ public class VirtualDJScrobbler extends Thread {
 			public void itemStateChanged(ItemEvent e) {
 				preferences.putBoolean(CHECK_FOR_UPDATE_PREFERENCE, checkForUpdates.getState());
 				log.info("Check for update is now: " + checkForUpdates.getState());
+			}
+		});
+		final MenuItem checkForUpdatesNow = new MenuItem("Check for updates now");
+		checkForUpdatesNow.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				log.info("Manually checking for update");
+				checkForUpdate();
 			}
 		});
 		final CheckboxMenuItem autokillVDJScrobblerItem = new CheckboxMenuItem("Exit when VDJ is closed", preferences.getBoolean(
@@ -385,6 +394,7 @@ public class VirtualDJScrobbler extends Thread {
 
 		Menu scrobblerSubMenu = new Menu("Scrobbler options");
 		scrobblerSubMenu.add(checkForUpdates);
+		scrobblerSubMenu.add(checkForUpdatesNow);
 
 		menu.add(aboutItem);
 		menu.addSeparator();
