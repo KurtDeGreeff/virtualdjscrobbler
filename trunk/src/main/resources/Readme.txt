@@ -43,6 +43,9 @@
 		5.7.1 Autostarting VirtualDJ
 		5.7.2 Setting the path to the VirtualDJ executable
 		5.7.3 Autoexit when VirtualDJ is closed
+	5.8 Checking for updates
+		5.8.1 Check for updates on startup
+		5.8.2 Manually check for updates
 6 Known limitations
 7 FAQ
 8 Licence
@@ -202,11 +205,24 @@ to set when autostart is activated. The reason for this is that the only way
 VirtualDJScrobbler can know about VirtualDJ is if it has been started from within
 VirtualDJScrobbler, i.e. via the autostart option. 
 
+5.8 Scrobbler options
+---------------------
+5.8.1 Check for updates on startup
+----------------------------------
+If you want VirtualDJScrobbler to automatically check for updates during startup check 
+this option.
+
+5.8.2 Manually check for updates
+--------------------------------
+Click the "Check for updates now" option to manually check if there is a new version 
+of VirtualDJScrobbler available.
+
+
 6. Known limitations
 --------------------
 The program has only been tested on Windows XP and Windows 7 x64 with VirtualDJ 
-v6.0, it might, for example, be that other versions of VirtualDJ stores the
-tracklist file in another format.
+v6.0 and v7.04, it might, for example, be that other versions of VirtualDJ stores 
+the tracklist file in another format.
 
 The error handling of the program hasn't been thoroughly tested since most error 
 responses from last.fm doesn't occur very often.
@@ -221,7 +237,7 @@ Program hasn't been tested with more than 2 users since I only have 2 accounts.
 7. FAQ
 ------
 Q1. What does a valid tracklist file look like?
-A1. VirtualDJ v6.0 stores the files on the format:
+A1. VirtualDJ v7.04 stores the files on the format:
 
 	VirtualDJ History - yyyy/mm/dd
 	------------------------------
@@ -274,8 +290,9 @@ https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NRMM5NEBFQPW&lc=S
 10 Changelog
 ------------
 0.3:
-	* ...
-	* Added check for updates option
+	* Fixed bug with program getting stuck in loop if a song had played for 6minutes so it should autoscrobble.
+	* Rewrote how the tracklist file is read to make it more efficient.
+	* Added check for updates options
 	* Added Changelog to Readme
 		
 0.2:
