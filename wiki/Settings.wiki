@@ -57,7 +57,8 @@ VirtualDJ executable. To do this simply press the "Set VirtualDJ executable" opt
 and either enter the full path to the "virtualdj.exe" file, or select browse and
 locate the executable in the file explorer.
 
-=== 7.3 Autoexit when VirtualDJ is closed ===
+== 8. Scrobbler Options ==
+=== 8.1 Autoexit when VirtualDJ is closed ===
 If you want VirtualDJScrobbler to automatically exit once VirtualDJ is closed
 you can enable it by clicking the "Exit when VDJ is closed" option.
 
@@ -66,7 +67,7 @@ to set when autostart is activated. The reason for this is that the only way
 VirtualDJScrobbler can know about VirtualDJ is if it has been started from within
 VirtualDJScrobbler, i.e. via the autostart option. 
 
-=== 7.4 Updating VirtualDJScrobbler ===
+=== 8.2 Updating VirtualDJScrobbler ===
 You can set VirtualDJScrobbler to automatically check for updates during startup, to enable this check the "Check for updates on startup" option under the menu "Scrobbler options"
 
 You can also manually check for updates here by clicking the "Check for updates now" option.
