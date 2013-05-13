@@ -43,7 +43,7 @@
 		5.7.1 Autostarting VirtualDJ
 		5.7.2 Setting the path to the VirtualDJ executable
 		5.7.3 Autoexit when VirtualDJ is closed
-	5.8 Checking for updates
+	5.8 Scrobbler options
 		5.8.1 Check for updates on startup
 		5.8.2 Manually check for updates
 6 Known limitations
