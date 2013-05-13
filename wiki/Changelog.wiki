@@ -1,8 +1,14 @@
 #summary Shows the changelog
 <wiki:comment>
-currver=0.2.1
+currver=0.3
 </wiki:comment>
 = Changelog =
+
+0.3:
+    * Fixed bug with program getting stuck in loop if a song had played for 6minutes so it should autoscrobble.
+    * Rewrote how the tracklist file is read to make it more efficient.
+    * Added check for updates options
+    * Added Changelog to Readme
 
 0.2.1:
     * Fix for issue 4, now any file containing the text "virtualdj" can be set as the VirtualDJ executable.
