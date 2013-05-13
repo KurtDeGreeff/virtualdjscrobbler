@@ -65,3 +65,8 @@ This option depends on the "Autostart VirtualDJ" option and will only be possibl
 to set when autostart is activated. The reason for this is that the only way 
 VirtualDJScrobbler can know about VirtualDJ is if it has been started from within
 VirtualDJScrobbler, i.e. via the autostart option. 
+
+=== 7.4 Updating VirtualDJScrobbler ===
+You can set VirtualDJScrobbler to automatically check for updates during startup, to enable this check the "Check for updates on startup" option under the menu "Scrobbler options"
+
+You can also manually check for updates here by clicking the "Check for updates now" option.
