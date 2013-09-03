@@ -289,6 +289,8 @@ https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NRMM5NEBFQPW&lc=S
 
 10 Changelog
 ------------
+0.3.1:
+	* Fixed issue where program crashed when autostarting VirtualDJ failed.
 0.3:
 	* Fixed bug with program getting stuck in loop if a song had played for 6minutes so it should autoscrobble.
 	* Rewrote how the tracklist file is read to make it more efficient.
