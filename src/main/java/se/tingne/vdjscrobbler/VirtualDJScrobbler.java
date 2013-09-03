@@ -151,15 +151,12 @@ public class VirtualDJScrobbler extends Thread {
 		log.debug("--------------");
 		setErrorStream();
 		preferences = Preferences.userNodeForPackage(this.getClass());
+		setupMainFrame();
 		handleLocking();
 		handleSplashScreen();
 		handleAutostartVDJ();
 		validationSuccess = false;
 		dialogShowing = false;
-		mainFrame = new JFrame();
-		mainFrame.setUndecorated(true);
-		mainFrame.pack();
-		mainFrame.setLocationRelativeTo(null);
 		this.setName("VirtualDJScrobbler");
 		loadQueue();
 		if (preferences.get(TRACKLIST_FILE_PREFERENCE, "").equals("")) {
@@ -174,6 +171,13 @@ public class VirtualDJScrobbler extends Thread {
 			checkForUpdate();
 		}
 		setupFileWatcher();
+	}
+
+	private void setupMainFrame() {
+		mainFrame = new JFrame();
+		mainFrame.setUndecorated(true);
+		mainFrame.pack();
+		mainFrame.setLocationRelativeTo(null);
 	}
 
 	private void setupFileWatcher() {
@@ -436,10 +440,12 @@ public class VirtualDJScrobbler extends Thread {
 	private void handleAutostartVDJ() {
 		if (preferences.getBoolean(AUTOSTART_VDJ_PREFERENCE, false)) {
 			String vdjLocation = preferences.get(VDJ_LOCATION, "");
+			log.debug("VDJ Location is: " + vdjLocation);
 			File file = new File(vdjLocation);
 			if (file.exists()) {
 				try {
-					final Process vdjProcess = Runtime.getRuntime().exec(vdjLocation);
+					String[] cmd = { vdjLocation };
+					final Process vdjProcess = Runtime.getRuntime().exec(cmd);
 					if (preferences.getBoolean(AUTOKILL_VDJSCROBBLER_PREFERENCE, false)) {
 						autokillerThread = new Thread() {
 							@Override
